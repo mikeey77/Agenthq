@@ -2,6 +2,8 @@ package main
 
 import "time"
 
+const fence = "```"
+
 // seedDemo fills the dashboard with example data (run with --demo). No processes are started.
 func (a *App) seedDemo() {
 	a.mu.Lock()
@@ -62,7 +64,7 @@ func (a *App) seedDemo() {
 	mk("a6", "lens", "Camera UX", "a3", "running", "WebFetch: developer.mozilla.org/…/getUserMedia", "sonnet", 2, 0.18, 1, 7, 6, []LogEntry{
 		L(6, "in", "Build the browser camera capture with crop + auto-rotate."), L(2, "tool", "WebFetch: developer.mozilla.org/…/getUserMedia")})
 	b := mk("b1", "nova", "Mission lead", "", "idle", "Telegram plugin done, all 42 tests pass. Ready for a release build?", "sonnet", 0, 0.64, 5, 22, 180, []LogEntry{
-		L(180, "in", "Finish the Telegram plugin for Assistant22 and make all tests pass."), L(60, "result", "Telegram plugin done, all 42 tests pass. Ready for a release build?")})
+		L(180, "in", "Finish the Telegram plugin for Assistant22 and make all tests pass."), L(61, "text", "Ran the full suite:\n\n"+fence+"\nnpm test\n42 passing (3.1s)\n"+fence+"\n\n**Changes**\n- plugin registry loads Telegram first\n- retry on 429 with backoff\n- new test for `/status`"), L(60, "result", "Telegram plugin done, all 42 tests pass. Ready for a release build?")})
 	b.Mission = "Finish the Telegram plugin for Assistant22 and make all tests pass."
 	b.Cwd = `C:\Users\Michael\Projects\assistant22`
 
@@ -98,6 +100,9 @@ func (a *App) seedDemo() {
 		{T: ago(21), Kind: "out", Text: "✓ quill → paused"},
 		{T: ago(2), Kind: "in", Text: "@atlas keep the CSV export simple, one row per receipt"},
 		{T: ago(2), Kind: "out", Text: "Message queued for atlas"},
+		{T: ago(1), Kind: "in", Text: "list my github repos and send me a message on telegram"},
+		{T: ago(1), Kind: "out", Text: "Mission started → nova"},
+		{T: ago(0.5), Kind: "ag", Text: "nova: You have 6 repos: agent-hq, assistant22, scrap-duel, glovebox, romscan, last-light. Sent the list to Telegram."},
 	}
 	// fake token usage: a block that started ~3h ago
 	u := a.usage

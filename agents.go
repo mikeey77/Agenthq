@@ -620,6 +620,9 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 		ag.Activity = truncate(msg, 120)
 		a.addLog(ag, "error", truncate(msg, 600))
 		a.emit("critical", ag.ID, a.T("crashed", ag.Name, truncate(msg, 300)))
+		if ag.ParentID == "" {
+			a.termAdd("ag", ag.Name+": ❌ "+truncate(msg, 300))
+		}
 		return
 	}
 	parent := a.agents[ag.ParentID]
@@ -631,6 +634,7 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 			a.emit("info", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 300)))
 		} else {
 			a.emit("update", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 600)))
+			a.termAdd("ag", ag.Name+": "+truncate(ag.Summary, 1200))
 		}
 	} else {
 		if ag.lastResult != "" {
@@ -639,6 +643,7 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 				a.emit("info", ag.ID, a.T("replied", ag.Name, truncate(ag.lastResult, 300)))
 			} else {
 				a.emit("update", ag.ID, a.T("replied", ag.Name, truncate(ag.lastResult, 600)))
+				a.termAdd("ag", ag.Name+": "+truncate(ag.lastResult, 1200))
 			}
 		}
 		ag.Status = "idle"

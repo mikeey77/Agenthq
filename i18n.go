@@ -42,7 +42,7 @@ var dict = map[string]map[string]string{
 		"queued_msg":      "Message queued for %s",
 		"usage_line":      "Tokens this 5h block: %s (%d%%) · resets in %s\nThis week: %s",
 		"status_head":     "🤖 Agent HQ — %d running, %d waiting on you",
-		"help":            "Commands:\n  <text>                start a new mission\n  mission <text>        start a new mission\n  @agent <text>         send a message to an agent\n  spawn <name>: <task>  start an extra top-level agent\n  pause <agent|all>     pause\n  resume <agent|all>    resume\n  stop <agent|all>      stop (incl. sub-agents)\n  delete <agent>        remove a stopped agent\n  list                  list agents\n  usage                 token usage\n  clear                 clear the terminal",
+		"help":            "Commands:\n  <text>                start a new mission\n  mission <text>        start a new mission\n  @agent <text>         send a message to an agent\n  spawn <name>: <task>  start an extra top-level agent\n  pause <agent|all>     pause\n  resume <agent|all>    resume\n  stop <agent|all>      stop (incl. sub-agents)\n  delete <agent>        remove a stopped agent\n  clear done            remove finished missions\n  list                  list agents\n  usage                 token usage\n  clear                 clear the terminal",
 		"term_mission":    "Mission started → %s",
 		"term_list_empty": "No agents.",
 		"stop_reason":     "Stopped by user",
@@ -51,6 +51,7 @@ var dict = map[string]map[string]string{
 		"user_msg":        "[Message from the user] %s",
 		"agent_msg":       "[Message from agent %s] %s",
 		"decision_answer": "[Answer to your earlier decision \"%s\"] %s",
+		"cleared":         "Cleared %d finished missions",
 		"continue":        "You were paused by the user and are now resumed. Continue where you left off.",
 	},
 	"nl": {
@@ -89,7 +90,7 @@ var dict = map[string]map[string]string{
 		"queued_msg":      "Bericht staat klaar voor %s",
 		"usage_line":      "Tokens dit 5u-blok: %s (%d%%) · reset over %s\nDeze week: %s",
 		"status_head":     "🤖 Agent HQ — %d bezig, %d wachten op jou",
-		"help":            "Commando's:\n  <tekst>                start een nieuwe missie\n  mission <tekst>        start een nieuwe missie\n  @agent <tekst>         stuur een bericht naar een agent\n  spawn <naam>: <taak>   start een extra hoofdagent\n  pause <agent|all>      pauzeren\n  resume <agent|all>     hervatten\n  stop <agent|all>       stoppen (incl. sub-agents)\n  delete <agent>         verwijder een gestopte agent\n  list                   lijst met agents\n  usage                  tokenverbruik\n  clear                  terminal leegmaken",
+		"help":            "Commando's:\n  <tekst>                start een nieuwe missie\n  mission <tekst>        start een nieuwe missie\n  @agent <tekst>         stuur een bericht naar een agent\n  spawn <naam>: <taak>   start een extra hoofdagent\n  pause <agent|all>      pauzeren\n  resume <agent|all>     hervatten\n  stop <agent|all>       stoppen (incl. sub-agents)\n  delete <agent>         verwijder een gestopte agent\n  clear done             afgeronde missies opruimen\n  list                   lijst met agents\n  usage                  tokenverbruik\n  clear                  terminal leegmaken",
 		"term_mission":    "Missie gestart → %s",
 		"term_list_empty": "Geen agents.",
 		"stop_reason":     "Gestopt door gebruiker",
@@ -98,6 +99,7 @@ var dict = map[string]map[string]string{
 		"user_msg":        "[Bericht van de gebruiker] %s",
 		"agent_msg":       "[Bericht van agent %s] %s",
 		"decision_answer": "[Antwoord op je eerdere beslissing \"%s\"] %s",
+		"cleared":         "%d afgeronde missies opgeruimd",
 		"continue":        "Je was gepauzeerd door de gebruiker en bent nu hervat. Ga verder waar je gebleven was.",
 	},
 }

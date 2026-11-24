@@ -92,10 +92,15 @@ func (a *App) runCommand(input string) []string {
 		return []string{"✓ " + ag.Name + " → " + ag.Status}
 	}
 
+	isRef := func(r string) bool {
+		r = strings.TrimSpace(r)
+		return strings.EqualFold(r, "all") || (r != "" && !strings.Contains(r, " ") && a.agentByRef(r) != nil)
+	}
+	control := map[string]bool{"pause": true, "resume": true, "unpause": true, "continue": true, "stop": true, "kill": true, "delete": true, "rm": true}
 	switch {
-	case verb == "help" || verb == "?":
+	case (verb == "help" || verb == "?") && rest == "":
 		return strings.Split(a.T("help"), "\n")
-	case verb == "list" || verb == "ls" || verb == "agents":
+	case (verb == "list" || verb == "ls" || verb == "agents") && (rest == "" || strings.EqualFold(rest, "agents")):
 		views := a.agentViews()
 		if len(views) == 0 {
 			return []string{a.T("term_list_empty")}
@@ -105,27 +110,28 @@ func (a *App) runCommand(input string) []string {
 			out = append(out, fmt.Sprintf("%s%s %-10s %-8s %s", strings.Repeat("  ", v.Depth), statusIcon[v.Status], v.Name, v.Status, truncate(v.Activity, 70)))
 		}
 		return out
-	case verb == "usage":
+	case verb == "usage" && rest == "":
 		return strings.Split(a.usageLine(), "\n")
-	case verb == "pause":
+	case verb == "clear" && (strings.EqualFold(rest, "done") || strings.EqualFold(rest, "finished")):
+		return []string{a.T("cleared", a.clearFinished())}
+	case control[verb] && rest == "":
+		return []string{"usage: " + verb + " <agent|all>"}
+	case verb == "pause" && isRef(rest):
 		return forTargets(rest, a.pauseAgent)
-	case verb == "resume" || verb == "unpause" || verb == "continue":
+	case (verb == "resume" || verb == "unpause" || verb == "continue") && isRef(rest):
 		return forTargets(rest, a.resumeAgent)
-	case verb == "stop" || verb == "kill":
+	case (verb == "stop" || verb == "kill") && isRef(rest):
 		return forTargets(rest, a.stopAgent)
-	case verb == "delete" || verb == "rm":
+	case (verb == "delete" || verb == "rm") && isRef(rest):
 		return forTargets(rest, a.deleteAgent)
-	case verb == "spawn":
-		name, mission, ok := strings.Cut(rest, ":")
-		if !ok {
-			return []string{"usage: spawn <name>: <mission>"}
-		}
+	case verb == "spawn" && strings.Contains(rest, ":"):
+		name, mission, _ := strings.Cut(rest, ":")
 		ag, err := a.startMission(strings.TrimSpace(mission), strings.TrimSpace(name), "", "", nil)
 		if err != nil {
 			return []string{"❌ " + err.Error()}
 		}
 		return []string{a.T("term_mission", ag.Name)}
-	case strings.HasPrefix(verb, "@"):
+	case strings.HasPrefix(verb, "@") && len(verb) > 1:
 		ag := a.agentByRef(verb)
 		if ag == nil {
 			return []string{a.T("unknown_agent", verb)}
@@ -139,14 +145,40 @@ func (a *App) runCommand(input string) []string {
 		a.addLog(ag, "in", "you: "+rest)
 		a.deliver(ag, fmt.Sprintf(dict["en"]["user_msg"], rest), true)
 		return []string{a.T("queued_msg", ag.Name)}
-	case verb == "mission":
-		input = rest
-		fallthrough
 	default:
+		if verb == "mission" && rest != "" {
+			input = rest
+		}
 		ag, err := a.startMission(input, "", "", "", nil)
 		if err != nil {
 			return []string{"❌ " + err.Error()}
 		}
 		return []string{a.T("term_mission", ag.Name)}
 	}
+}
+
+// clearFinished removes missions whose agents are all done or stopped. Caller holds a.mu.
+func (a *App) clearFinished() int {
+	n := 0
+	var finished func(id string) bool
+	finished = func(id string) bool {
+		ag := a.agents[id]
+		if ag.Status != "done" && ag.Status != "stopped" {
+			return false
+		}
+		for _, c := range a.children(id) {
+			if !finished(c.ID) {
+				return false
+			}
+		}
+		return true
+	}
+	for _, id := range append([]string(nil), a.order...) {
+		ag := a.agents[id]
+		if ag != nil && (ag.ParentID == "" || a.agents[ag.ParentID] == nil) && finished(id) {
+			a.deleteAgent(ag)
+			n++
+		}
+	}
+	return n
 }

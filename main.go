@@ -26,7 +26,7 @@ var indexHTML []byte
 var fontFS embed.FS
 
 const appName = "AgentHQ"
-const version = "2.0.2"
+const version = "2.1.0"
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -280,6 +280,12 @@ func (a *App) routes() *http.ServeMux {
 			a.deliver(ag, fmt.Sprintf(dict["en"]["user_msg"], in.Text), true)
 		}
 		writeJSON(w, map[string]bool{"ok": true})
+	})
+	mux.HandleFunc("/api/clear", func(w http.ResponseWriter, r *http.Request) {
+		a.mu.Lock()
+		n := a.clearFinished()
+		a.mu.Unlock()
+		writeJSON(w, map[string]int{"cleared": n})
 	})
 	mux.HandleFunc("/api/decision", func(w http.ResponseWriter, r *http.Request) {
 		var in struct{ ID, Answer string }

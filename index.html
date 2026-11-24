@@ -256,6 +256,7 @@ textarea.field{min-height:120px;resize:vertical;line-height:1.5}
 .term-out{height:190px;overflow:auto;padding:10px 14px;white-space:pre-wrap;word-break:break-word}
 .term-out .ti{color:#fff}.term-out .ti::before{content:"hq › ";color:var(--accent)}
 .term-out .to{color:#7f90a6;margin-bottom:6px}
+.term-out .ta{color:#e9edf3;border-left:2px solid var(--accent);padding-left:10px;margin:2px 0 8px}
 .term-in{display:flex;gap:8px;padding:9px 14px;border-top:1px solid #1f2630}
 .term-in label{color:var(--accent);font-weight:700}
 .term-in input{flex:1;background:none;border:0;outline:none;color:#fff;font:inherit}
@@ -279,6 +280,7 @@ textarea.field{min-height:120px;resize:vertical;line-height:1.5}
 .lg time{color:var(--dim);font-size:12.5px;padding-top:1px}
 .lg.tool .x{font:13px "Cascadia Mono",Consolas,monospace;color:var(--muted)}
 .lg.in .x{color:var(--amber)}.lg.error .x{color:var(--red)}.lg.result .x{color:var(--teal);font-weight:600}.lg.info .x{color:var(--dim)}
+.md{white-space:normal}.md p{margin:0 0 6px}.md ul{margin:2px 0 6px;padding-left:18px}.md pre{background:var(--term);color:#cfe3d2;padding:8px 10px;border-radius:8px;overflow:auto;font:12.5px/1.45 'Cascadia Mono',Consolas,monospace;margin:4px 0 8px;white-space:pre}.md code{font:12.5px 'Cascadia Mono',Consolas,monospace;background:var(--panel3);padding:0 4px;border-radius:4px}.md pre code{background:none;padding:0}.md h4{margin:6px 0 4px;font:600 15px 'Barlow SC'}
 .df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
 .df input{flex:1}
 
@@ -312,6 +314,7 @@ label.l small{font-weight:400;color:var(--muted)}
 .langpick button{border:1px solid var(--line2);background:var(--bg);border-radius:12px;padding:18px;font:600 20px "Barlow SC";text-align:left}
 .langpick button small{display:block;font:400 14px "Barlow";color:var(--muted)}
 .langpick button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+
 
 /* connectors */
 .section-t{font:600 21px "Barlow SC";margin:26px 0 3px}
@@ -376,7 +379,7 @@ label.l small{font-weight:400;color:var(--muted)}
       <button class="btn primary" onclick="openMission()" data-i="new_mission"></button></div>
     <div class="stats" id="stats"></div>
     <div class="grid">
-      <div class="card"><header><h2 data-i="agents"></h2><span class="r" id="netNote"></span></header><div class="body" id="tree"></div></div>
+      <div class="card"><header><h2 data-i="agents"></h2><span class="r" id="netNote"></span><button class="btn quiet sm" id="clearBtn" onclick="clearDone()" data-i="clear_done" style="display:none"></button></header><div class="body" id="tree"></div></div>
       <div class="col">
         <div class="card"><header><h2 data-i="waiting_on_you"></h2></header><div class="body" id="decs"></div></div>
         <div class="card"><header><h2 data-i="log"></h2><div class="seg" id="seg"></div></header><div class="feed" id="feed"></div></div>
@@ -432,9 +435,9 @@ label.l small{font-weight:400;color:var(--muted)}
 
 <script>
 const I18N={
-en:{nav_command:"Command",nav_decisions:"Decisions",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Settings",quit:"Quit Agent HQ",
+en:{nav_command:"Command",clear_done:"Clear finished",cleared:"Cleared",notif_on:"Desktop notifications are on",nav_decisions:"Decisions",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Settings",quit:"Quit Agent HQ",
  pause_all:"Pause all",stop_all:"Stop all",new_mission:"New mission",agents:"Agents",waiting_on_you:"Waiting on you",log:"Log",
- terminal:"Master terminal",term_hint:"Type a mission to start one. @name sends a message. help lists all commands.",term_ph:"Describe what you want done",
+ terminal:"Master terminal",term_hint:"Type a mission to start one. @name sends a message. help lists all commands. Ctrl+K jumps here.",term_ph:"Describe what you want done",
  st_running:"Running",st_waiting:"Waiting on you",st_agents:"Agents",st_spent:"Spent",st_done:"Done",of:"of",
  s_queued:"Queued",s_running:"Running",s_waiting:"Needs you",s_paused:"Paused",s_idle:"Idle",s_done:"Done",s_stopped:"Stopped",s_error:"Failed",
  empty_t:"No agents yet",empty_d:"Start a mission. The lead agent splits the work and creates its own helpers when that's faster.",
@@ -471,9 +474,9 @@ en:{nav_command:"Command",nav_decisions:"Decisions",nav_connectors:"Connectors",
  w_found:"Found Claude Code at",w_missing:"Claude Code isn't installed or isn't on your PATH. Install it, run claude once to log in, then test again.",
  w_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Type your first mission in the master terminal, or use New mission.",
  next:"Next",back:"Back",skip:"Skip",finish:"Open Agent HQ",answer_sent:"Answer sent",now:"now"},
-nl:{nav_command:"Commando",nav_decisions:"Beslissingen",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Instellingen",quit:"Agent HQ afsluiten",
+nl:{nav_command:"Commando",clear_done:"Afgeronde opruimen",cleared:"Opgeruimd",notif_on:"Bureaubladmeldingen staan aan",nav_decisions:"Beslissingen",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Instellingen",quit:"Agent HQ afsluiten",
  pause_all:"Alles pauzeren",stop_all:"Alles stoppen",new_mission:"Nieuwe missie",agents:"Agents",waiting_on_you:"Wacht op jou",log:"Logboek",
- terminal:"Master terminal",term_hint:"Typ een missie om te starten. @naam stuurt een bericht. help toont alle commando's.",term_ph:"Beschrijf wat er moet gebeuren",
+ terminal:"Master terminal",term_hint:"Typ een missie om te starten. @naam stuurt een bericht. help toont alle commando's. Ctrl+K springt hierheen.",term_ph:"Beschrijf wat er moet gebeuren",
  st_running:"Bezig",st_waiting:"Wacht op jou",st_agents:"Agents",st_spent:"Uitgegeven",st_done:"Klaar",of:"van",
  s_queued:"In de rij",s_running:"Bezig",s_waiting:"Wacht op jou",s_paused:"Gepauzeerd",s_idle:"Wacht",s_done:"Klaar",s_stopped:"Gestopt",s_error:"Mislukt",
  empty_t:"Nog geen agents",empty_d:"Start een missie. De hoofdagent verdeelt het werk en maakt zelf helpers aan als dat sneller is.",
@@ -568,7 +571,7 @@ function render(){
   setHTML('stTg',`<span class="lamp ${l}"></span>${esc(txt)}`);setHTML('stLive',`<span class="lamp g"></span>${t('st_live')}`);
   const nd=S.decisions.length;$('navBadge').textContent=nd||'';document.title=(nd?`(${nd}) `:'')+'Agent HQ';
   renderUsage();renderStats();renderTree();renderDecs('decs',S.decisions);renderDecs('decs2',S.decisions);renderHistory();renderFeed();renderTerm();renderExternal();
-  if(drawerId)renderDrawer();tick();flyMessages();
+  if(drawerId)renderDrawer();tick();flyMessages();notify();
 }
 function renderUsage(){
   const u=S.usage,N=30;const lit=u.percent>0?Math.min(N,Math.round(u.percent/100*N)):0;const boot=!SEEN.meter&&u.ready&&u.blockActive;if(boot)SEEN.meter=1;
@@ -595,6 +598,7 @@ function ctlHTML(a){const res=a.status==='paused'||a.status==='error',live=!['st
   else if(live)h+=`<button class="pb hold" title="${t('pause')}" aria-label="${t('pause')}" onclick="act('${a.id}','pause')"><span class="cap">${IC.hold}</span></button>`;
   h+=a.status!=='stopped'?`<button class="pb halt" title="${t('stop')}" aria-label="${t('stop')}" onclick="act('${a.id}','stop')"><span class="cap">${IC.halt}</span></button>`:`<button class="pb bin" title="${t('del')}" aria-label="${t('del')}" onclick="act('${a.id}','delete')"><span class="cap">${IC.bin}</span></button>`;return h}
 function renderTree(){
+  $('clearBtn').style.display=S.agents.some(a=>!a.parentId&&['done','stopped'].includes(a.status))?'':'none';
   const ag=S.agents;$('netNote').textContent=ag.length?`${S.stats.running} ${t('s_running').toLowerCase()}, ${ag.length} ${t('agents').toLowerCase()}`:'';
   if(!ag.length){setHTML('tree',`<div class="empty"><div class="bav wave s-idle" style="--c:#f08a4b">${BOT}</div><div><h3>${t('empty_t')}</h3><p>${t('empty_d')}</p><button class="btn primary" onclick="openMission()">${t('new_mission')}</button></div></div>`);return}
   const tg=tags();let h='';
@@ -626,7 +630,7 @@ function renderFeed(){
   const fresh=id=>{if(!SEEN.ev[id])SEEN.ev[id]=SEEN.boot?Date.now():1;return Date.now()-SEEN.ev[id]<1500?' fresh':''};
   setHTML('feed',ev.map(e=>`<div class="ev ${e.level}${fresh(e.id)}"><time class="num">${hm(e.time)}</time><span class="lamp ${lvLamp[e.level]}"></span><span class="tx">${esc(e.text)}</span></div>`).join('')||'<div class="quiet">—</div>');
 }
-function renderTerm(){const out=$('termOut');const html=(S.term||[]).map(l=>`<div class="${l.k==='in'?'ti':'to'}">${esc(l.x)}</div>`).join('');
+function renderTerm(){const out=$('termOut');const html=(S.term||[]).map(l=>`<div class="${l.k==='in'?'ti':l.k==='ag'?'ta':'to'}">${esc(l.x)}</div>`).join('');
   if(out._h!==html){const b=out.scrollHeight-out.scrollTop-out.clientHeight<30;out._h=html;out.innerHTML=html;if(b||!out._i){out.scrollTop=out.scrollHeight;out._i=1}}}
 function renderExternal(){const ex=S.external||{};
   setHTML('extBanner',ex.teamsEnabled?'':`<div class="banner"><span style="flex:1">${t('teams_off')}</span><button class="btn" onclick="enableTeams()">${t('turn_on')}</button></div>`);
@@ -687,13 +691,43 @@ function renderDrawer(){const a=S.agents.find(x=>x.id===drawerId);if(!a){closeDr
   const p=S.agents.find(x=>x.id===a.parentId),tg=tags();
   setHTML('dh',`${bot(a)}<div style="flex:1;min-width:0"><div class="a-top">${tagHTML(a,tg)}<h2>${esc(a.name)}</h2><span class="pill p-${a.status}">${t('s_'+a.status)}</span></div><div class="meta">${esc(a.role)}${p?`, ${t('parent')} ${esc(p.name)}`:''}${a.model?`, ${esc(a.model)}`:''}</div></div><div class="ctl">${ctlHTML(a)}</div><button class="btn quiet sm" onclick="closeDrawer()">${t('close')}</button>`);
   const conns=(S.connectors||[]).filter(c=>c.enabled&&(!a.connectors||a.connectors.includes(c.id))).map(c=>esc(c.name)).join(', ');
-  const log=((drLog&&drLog.log)||[]).slice(-250).map(l=>`<div class="lg ${l.k}"><time class="num">${hm(l.t)}</time><span class="x">${esc(l.x)}</span></div>`).join('');
+  const log=((drLog&&drLog.log)||[]).slice(-250).map(l=>`<div class="lg ${l.k}"><time class="num">${hm(l.t)}</time><span class="x${l.k==='text'||l.k==='result'?' md':''}">${l.k==='text'||l.k==='result'?md(l.x):esc(l.x)}</span></div>`).join('');
   const body=`<div class="facts"><div><b class="num">${a.turns}</b><span>${t('turns')}</span></div><div><b class="num">${a.toolCalls}</b><span>${t('tools')}</span></div><div><b class="num">${fmtTok(a.inTok+a.outTok)}</b><span>${t('tokens')}</span></div><div><b class="num">$${(a.cost||0).toFixed(2)}</b><span>${t('cost')}</span></div></div>
    <div class="dsec">${t('mission_t')}</div><div class="mission">${esc(a.mission)}</div><p class="hint">${t('folder_t')}: ${esc(a.cwd)}${conns?`<br>${t('nav_connectors')}: ${conns}`:''}</p><div class="dsec">${t('activity')}</div>${log}`;
   const b=$('db');const bot2=b.scrollHeight-b.scrollTop-b.clientHeight<40;if(b._h!==body){b._h=body;b.innerHTML=body;if(bot2||!b._i){b.scrollTop=b.scrollHeight;b._i=1}}}
 async function sendDrawerMsg(){const v=$('drMsg').value.trim();if(!v||!drawerId)return;$('drMsg').value='';await act(drawerId,'message',v);await loadLog();renderDrawer()}
 $('drMsg').addEventListener('keydown',e=>{if(e.key==='Enter')sendDrawerMsg()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();hide('missionModal');hide('connModal')}});
+
+/* small markdown renderer for agent output (escaped first) */
+function md(src){
+  const parts=String(src).split(/```[\w-]*\n?/);let out='';
+  parts.forEach((p,i)=>{if(i%2){out+=`<pre><code>${esc(p.replace(/\n$/,''))}</code></pre>`;return}
+    let html='',list=false;
+    esc(p).split('\n').forEach(line=>{
+      let l=line.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+      const li=l.match(/^\s*(?:[-*]|\d+\.)\s+(.*)/);
+      if(li){if(!list){html+='<ul>';list=true}html+=`<li>${li[1]}</li>`;return}
+      if(list){html+='</ul>';list=false}
+      const h=l.match(/^#{1,4}\s+(.*)/);if(h){html+=`<h4>${h[1]}</h4>`;return}
+      if(l.trim())html+=`<p>${l}</p>`});
+    if(list)html+='</ul>';out+=html});
+  return out;
+}
+async function clearDone(){try{const r=await api('/api/clear',{});toast(t('cleared')+': '+r.cleared);refresh()}catch(e){toast(e.message)}}
+/* desktop notifications for decisions and critical alerts while the window is in the background */
+let notifSeen=null;
+document.addEventListener('click',()=>{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()},{once:true});
+function notify(){
+  if(!S||!('Notification' in window))return;const evs=S.events||[];
+  if(notifSeen===null){notifSeen=evs.length?evs[0].id:0;return}
+  evs.filter(e=>e.id>notifSeen&&(e.level==='decision'||e.level==='critical')).reverse().forEach(e=>{
+    if(Notification.permission==='granted'&&document.hidden){const n=new Notification(e.level==='critical'?'Agent HQ — critical':'Agent HQ — decision needed',{body:e.text,tag:'hq-'+e.id});n.onclick=()=>{window.focus();go(e.level==='decision'?'decisions':'command');n.close()}}});
+  if(evs.length)notifSeen=Math.max(notifSeen,evs[0].id);
+}
+/* Ctrl+K jumps to the master terminal */
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();go('command');$('termIn').focus()}});
+
 
 /* connectors */
 async function loadConnectors(){try{CONN=await api('/api/connectors');renderConnectors()}catch(e){toast(e.message)}}
