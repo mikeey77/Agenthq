@@ -27,7 +27,7 @@ var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.4.0" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.5.0" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -36,6 +36,9 @@ type TermLine struct {
 }
 
 type App struct {
+	projects    []*Project
+	nextProject string
+	nextTask    string
 	limitUntil  time.Time
 	warnedBlock time.Time
 	browser     *Browser
@@ -139,6 +142,30 @@ func writeJSON(w http.ResponseWriter, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// localOnly blocks other websites from driving Agent HQ: requests must come from the app itself
+// (same host, no foreign Origin), which stops cross-site requests and DNS rebinding.
+func localOnly(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := r.Host
+		if i := strings.LastIndex(host, ":"); i > 0 {
+			host = host[:i]
+		}
+		if host != "127.0.0.1" && host != "localhost" && host != "[::1]" {
+			http.Error(w, "forbidden host", 403)
+			return
+		}
+		if o := r.Header.Get("Origin"); o != "" && o != "http://"+r.Host {
+			http.Error(w, "forbidden origin", 403)
+			return
+		}
+		if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+			http.Error(w, "forbidden", 403)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func readBody(r *http.Request, v any) error { return json.NewDecoder(r.Body).Decode(v) }
 
 func (a *App) stateJSON() map[string]any {
@@ -193,7 +220,7 @@ func (a *App) stateJSON() map[string]any {
 		"version": version, "lang": a.cfg.Lang, "theme": a.cfg.Theme, "accent": a.cfg.Accent, "layout": a.cfg.Layout, "setupDone": a.cfg.SetupDone, "demo": a.demo,
 		"claudePath": claude, "claudeFound": claude != "",
 		"agents": views, "decisions": a.pendingDecisions(), "recentDecisions": recent,
-		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a),
+		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a), "projects": a.projectViews(),
 		"stats": stats, "connectors": conns, "update": func() UpdateInfo { u := a.upd; u.Current = version; return u }(), "autoUpdate": a.cfg.AutoUpdate, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
 		"permissionMode": a.cfg.PermissionMode, "workspace": a.cfg.Workspace, "term": append([]TermLine{}, a.term...),
 		"limits": map[string]int{"maxAgents": a.cfg.MaxAgents, "maxRunning": a.cfg.MaxRunning},
@@ -201,7 +228,7 @@ func (a *App) stateJSON() map[string]any {
 	}
 }
 
-func (a *App) routes() *http.ServeMux {
+func (a *App) routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -212,6 +239,7 @@ func (a *App) routes() *http.ServeMux {
 	mux.Handle("/assets/", http.FileServer(http.FS(fontFS)))
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/assets/icon.png", 302) })
 	a.browserRoutes(mux)
+	a.projectRoutes(mux)
 	a.connectorRoutes(mux)
 	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })
@@ -246,12 +274,20 @@ func (a *App) routes() *http.ServeMux {
 	})
 	mux.HandleFunc("/api/mission", func(w http.ResponseWriter, r *http.Request) {
 		var in struct {
-			Mission, Name, Cwd, Model string
-			Connectors                []string
+			Mission, Name, Cwd, Model, Project string
+			Connectors                         []string
 		}
 		_ = readBody(r, &in)
 		a.mu.Lock()
+		p := a.projectByID(in.Project)
+		if p != nil && strings.TrimSpace(in.Cwd) == "" {
+			in.Cwd = p.Folder
+		}
+		if p != nil {
+			a.nextProject = p.ID
+		}
 		ag, err := a.startMission(in.Mission, in.Name, strings.TrimSpace(in.Cwd), in.Model, in.Connectors)
+		a.nextProject = ""
 		if err == nil {
 			a.termAdd("out", a.T("term_mission", ag.Name))
 		}
@@ -318,6 +354,9 @@ func (a *App) routes() *http.ServeMux {
 				http.Error(w, err.Error(), 400)
 				return
 			}
+			if t, ok := in["githubToken"].(string); ok && strings.Contains(t, "•") {
+				delete(in, "githubToken")
+			}
 			if t, ok := in["botToken"].(string); ok && strings.Contains(t, "•") {
 				delete(in, "botToken")
 			}
@@ -348,6 +387,9 @@ func (a *App) routes() *http.ServeMux {
 		}
 		c := a.cfg
 		c.Connectors = nil // served (masked) by /api/connectors
+		if len(c.GitHubToken) > 10 {
+			c.GitHubToken = c.GitHubToken[:4] + "••••••" + c.GitHubToken[len(c.GitHubToken)-3:]
+		}
 		if len(c.BotToken) > 10 {
 			c.BotToken = c.BotToken[:6] + "••••••" + c.BotToken[len(c.BotToken)-3:]
 		}
@@ -431,7 +473,7 @@ func (a *App) routes() *http.ServeMux {
 			os.Exit(0)
 		}()
 	})
-	return mux
+	return localOnly(mux)
 }
 
 func main() {

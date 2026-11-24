@@ -113,6 +113,22 @@ func (a *App) runCommand(input string) []string {
 			out = append(out, fmt.Sprintf("%s%s %-10s %-8s %s", strings.Repeat("  ", v.Depth), statusIcon[v.Status], v.Name, v.Status, truncate(v.Activity, 70)))
 		}
 		return out
+	case (verb == "projects" || verb == "project") && rest == "":
+		if len(a.projects) == 0 {
+			return []string{a.T("projects_none")}
+		}
+		var out []string
+		for _, p := range a.projects {
+			d, t := p.progress()
+			line := fmt.Sprintf("📁 %s — %d/%d", p.Name, d, t)
+			for _, tk := range p.Tasks {
+				if tk.Status == "doing" || tk.Status == "review" {
+					line += fmt.Sprintf("\n   %s %s", map[string]string{"doing": "▶", "review": "👀"}[tk.Status], tk.Title)
+				}
+			}
+			out = append(out, line)
+		}
+		return out
 	case verb == "usage" && rest == "":
 		return strings.Split(a.usageLine(), "\n")
 	case verb == "clear" && (strings.EqualFold(rest, "done") || strings.EqualFold(rest, "finished")):

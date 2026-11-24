@@ -20,6 +20,8 @@ type Config struct {
 	Workspace      string          `json:"workspace"`
 	PermissionMode string          `json:"permissionMode"` // ask | edits | full
 	PermVersion    int             `json:"permVersion"`
+	GitHubToken    string          `json:"githubToken"`
+	TgNoImages     bool            `json:"tgNoImages"`
 	DefaultModel   string          `json:"defaultModel"`
 	MaxAgents      int             `json:"maxAgents"`
 	MaxRunning     int             `json:"maxRunning"`

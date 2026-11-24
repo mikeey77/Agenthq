@@ -83,23 +83,97 @@ func (a *App) tgSendText(text string, silent bool, kb any) {
 	}
 }
 
+var numEmoji = []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"}
+
+var yesWords = []string{"yes", "ja", "ok", "allow", "toestaan", "approve", "akkoord", "doorgaan", "go", "proceed", "continue", "ship", "do it", "doe maar", "sure", "prima"}
+var noWords = []string{"no", "nee", "deny", "weiger", "cancel", "annuleer", "stop", "don't", "niet", "skip", "make it private", "maak privé", "later"}
+
+func hasWord(s string, words []string) bool {
+	s = strings.ToLower(strings.TrimSpace(s))
+	for _, w := range words {
+		if s == w || strings.HasPrefix(s, w+" ") || strings.HasPrefix(s, w+",") || strings.HasPrefix(s, w+".") || strings.HasPrefix(s, w+"!") || strings.HasPrefix(s, w+":") {
+			return true
+		}
+	}
+	return false
+}
+
+// yesNo reports whether a decision is a plain yes/no question, answered with ✅ / ❌.
+func yesNo(opts []string) bool {
+	return len(opts) == 2 && hasWord(opts[0], yesWords) && hasWord(opts[1], noWords)
+}
+
+func optionEmojis(opts []string) []string {
+	if yesNo(opts) {
+		return []string{"✅", "❌"}
+	}
+	return numEmoji[:min(len(opts), len(numEmoji))]
+}
+
+// matchOption turns an emoji, number or yes/no word into the option it picks.
+func matchOption(opts []string, text string) (int, bool) {
+	t := strings.TrimSpace(strings.NewReplacer("\uFE0F", "", "\u20E3", "").Replace(text))
+	if t == "🔟" {
+		t = "10"
+	}
+	if n, err := strconv.Atoi(t); err == nil && n >= 1 && n <= len(opts) {
+		return n - 1, true
+	}
+	if len(opts) == 2 {
+		switch strings.ToLower(t) {
+		case "✅", "✔", "👍", "👌", "y", "j", "yes", "ja", "ok", "oké":
+			return 0, true
+		case "❌", "✖", "👎", "n", "no", "nee":
+			return 1, true
+		}
+	}
+	for i, o := range opts {
+		if strings.EqualFold(t, o) {
+			return i, true
+		}
+	}
+	return 0, false
+}
+
 func (a *App) decisionText(d *Decision) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "⚠️ %s — %s\n\n%s", a.T("decision"), d.AgentName, d.Question)
 	if d.Detail != "" {
 		fmt.Fprintf(&b, "\n\n%s", d.Detail)
 	}
+	if len(d.Options) > 0 {
+		b.WriteString("\n")
+		em := optionEmojis(d.Options)
+		for i, o := range d.Options {
+			if i < len(em) {
+				fmt.Fprintf(&b, "\n%s %s", em[i], o)
+			}
+		}
+	}
 	return b.String()
 }
 
 func (a *App) tgSendDecision(d *Decision) {
 	a.mu.Lock()
-	text := a.decisionText(d) + "\n\n" + a.T("decision_hint")
+	hint := a.T("decision_hint_num")
+	if yesNo(d.Options) {
+		hint = a.T("decision_hint_yn")
+	}
+	text := a.decisionText(d) + "\n\n" + hint
+	em := optionEmojis(d.Options)
 	var rows [][]map[string]string
 	var row []map[string]string
+	perRow := 2
+	if !yesNo(d.Options) && len(d.Options) > 2 {
+		perRow = 1
+	}
 	for i, o := range d.Options {
-		row = append(row, map[string]string{"text": truncate(o, 40), "callback_data": "d:" + d.ID + ":" + strconv.Itoa(i)})
-		if len(row) == 2 {
+		if i >= len(em) {
+			break
+		}
+		label := em[i] + " " + truncate(o, 36)
+		row = append(row, map[string]string{"text": label, "callback_data": "d:" + d.ID + ":" + strconv.Itoa(i)})
+		if len(row) == perRow {
 			rows = append(rows, row)
 			row = nil
 		}
@@ -123,7 +197,11 @@ func (a *App) tgMarkAnswered(d *Decision) {
 	a.mu.Lock()
 	text := a.decisionText(d)
 	if d.Status == "answered" {
-		text += "\n\n✅ " + a.T("answered", d.Answer)
+		mark := "👉"
+		if i, ok := matchOption(d.Options, d.Answer); ok && i < len(optionEmojis(d.Options)) {
+			mark = optionEmojis(d.Options)[i]
+		}
+		text += "\n\n" + mark + " " + a.T("answered", d.Answer)
 	} else {
 		text += "\n\n⌛ —"
 	}
@@ -233,9 +311,9 @@ func (a *App) handleUpdate(um map[string]any) {
 				if d.ID == did && len(d.Options) > 0 {
 					idx := -1
 					switch emoji {
-					case "👍", "❤", "🔥", "👌", "💯":
+					case "👍", "❤", "🔥", "👌", "💯", "🎉", "🤝", "⚡", "🏆":
 						idx = 0
-					case "👎", "💩", "🤬":
+					case "👎", "💩", "🤬", "🙈", "😡":
 						idx = 1
 					}
 					if idx >= 0 && idx < len(d.Options) {
@@ -281,7 +359,16 @@ func (a *App) handleUpdate(um map[string]any) {
 		did, isDec := a.tgMsgs[int64(mid)]
 		var err error
 		if isDec {
-			err = a.answerDecision(did, text, "telegram")
+			ans := text
+			for _, d := range a.decisions {
+				if d.ID == did {
+					if i, ok := matchOption(d.Options, text); ok {
+						ans = d.Options[i]
+					}
+				}
+			}
+			text = ans
+			err = a.answerDecision(did, ans, "telegram")
 		}
 		a.mu.Unlock()
 		if isDec {
@@ -290,6 +377,27 @@ func (a *App) handleUpdate(um map[string]any) {
 			} else {
 				_, _ = a.tgSendTo(chatID, "✅ "+a.T("answered", text), true, nil)
 			}
+			return
+		}
+	}
+	// a bare 1️⃣ / ✅ / ❌ answers the newest open decision
+	if !strings.HasPrefix(text, "/") && len([]rune(text)) <= 4 {
+		a.mu.Lock()
+		var last *Decision
+		for _, d := range a.decisions {
+			if d.Status == "pending" && (last == nil || d.Created.After(last.Created)) {
+				last = d
+			}
+		}
+		answered := ""
+		if last != nil {
+			if i, ok := matchOption(last.Options, text); ok && a.answerDecision(last.ID, last.Options[i], "telegram") == nil {
+				answered = last.Options[i]
+			}
+		}
+		a.mu.Unlock()
+		if answered != "" {
+			_, _ = a.tgSendTo(chatID, "👌 "+a.T("answered", answered), true, nil)
 			return
 		}
 	}
@@ -302,7 +410,12 @@ func (a *App) handleUpdate(um map[string]any) {
 	case "/start", "/help":
 		out = []string{a.T("tg_linked")}
 	case "/status":
-		out = []string{a.statusText()}
+		a.mu.Lock()
+		doc := a.statusCard()
+		a.mu.Unlock()
+		go a.tgCard(doc, a.statusText(), false, nil)
+	case "/projects", "/p":
+		out = a.runCommand("projects")
 	case "/agents", "/list":
 		out = a.runCommand("list")
 	case "/usage":

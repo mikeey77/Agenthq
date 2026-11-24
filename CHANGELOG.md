@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.5.0
+
+- **Projects.** Every project gets a folder and a task board (To do, Doing, Check, Done). Drag tasks between columns, press Start to put an agent on a task, and agents keep the board up to date themselves.
+- **GitHub.** Agents can create a repository and push their work (private by default; public only after you confirm). Add a token in Settings.
+- **Files.** Folder buttons on agents and projects open Explorer, and the Files map shows what the agents changed. Click a file to show it in Explorer.
+- **Picture cards on Telegram.** Finished missions, /status and the usage limit arrive as images; agents can attach a screenshot of the browser page.
+- **Emoji answers.** Questions on Telegram use 1️⃣ 2️⃣ 3️⃣ or ✅ ❌: tap a button or just send the emoji.
+- **Security:** other websites can no longer send commands to Agent HQ.
+
 ## 2.4.0
 
 - **Own app window** with a new robot icon instead of a browser tab. Closing it keeps your agents running; start Agent HQ again to reopen it.

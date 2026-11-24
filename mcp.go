@@ -29,7 +29,7 @@ func sProp(desc string) map[string]any { return map[string]any{"type": "string",
 
 var mcpTools = []map[string]any{
 	{"name": "report", "description": "Send the user a status message. level=update for progress at meaningful milestones; level=critical when something is blocked, broken or needs attention ASAP.",
-		"inputSchema": schema(map[string]any{"level": map[string]any{"type": "string", "enum": []string{"update", "critical"}}, "message": sProp("Short message for the user")}, "level", "message")},
+		"inputSchema": schema(map[string]any{"level": map[string]any{"type": "string", "enum": []string{"update", "critical"}}, "message": sProp("Short message for the user"), "screenshot": map[string]any{"type": "boolean", "description": "Attach a picture of your current Agent HQ browser page"}}, "level", "message")},
 	{"name": "ask_decision", "description": "Ask the user to make a decision. Waits for the answer (can take minutes). The user may pick an option or write a custom answer.",
 		"inputSchema": schema(map[string]any{"question": sProp("The question"), "options": map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": "2-4 short options"}, "context": sProp("Optional extra context")}, "question", "options")},
 	{"name": "spawn_agent", "description": "Create a sub-agent that works in parallel on a self-contained mission. It reports back to you automatically.",
@@ -86,13 +86,25 @@ func (a *App) handleMCP(w http.ResponseWriter, r *http.Request) {
 	case "ping":
 		reply(map[string]any{}, nil)
 	case "tools/list":
-		reply(map[string]any{"tools": append(append([]map[string]any{}, mcpTools...), browserTools...)}, nil)
+		tools := append(append([]map[string]any{}, mcpTools...), browserTools...)
+		tools = append(append(tools, projectTools...), githubTools...)
+		reply(map[string]any{"tools": tools}, nil)
 	case "tools/call":
 		var p struct {
 			Name      string         `json:"name"`
 			Arguments map[string]any `json:"arguments"`
 		}
 		_ = json.Unmarshal(req.Params, &p)
+		if strings.HasPrefix(p.Name, "github_") {
+			a.mu.Lock()
+			ag := a.agents[id]
+			a.mu.Unlock()
+			if ag != nil {
+				text, isErr := a.githubTool(r, ag, p.Name, p.Arguments)
+				reply(map[string]any{"content": []map[string]any{{"type": "text", "text": text}}, "isError": isErr}, nil)
+				return
+			}
+		}
 		if strings.HasPrefix(p.Name, "browser_") {
 			a.mu.Lock()
 			ag := a.agents[id]
@@ -120,6 +132,10 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 		return "unknown agent", true
 	}
 	switch name {
+	case "project_tasks", "add_task", "update_task", "create_project":
+		text, isErr := a.projectTool(ag, name, args)
+		a.mu.Unlock()
+		return text, isErr
 	case "report":
 		msg := str(args, "message")
 		level := str(args, "level")
@@ -127,6 +143,9 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 			level = "update"
 		}
 		a.addLog(ag, "tool", "reports: "+msg)
+		if level == "update" && str(args, "screenshot") == "true" && a.browser.get(ag.ID) != nil {
+			level = "shot"
+		}
 		a.emit(level, ag.ID, ag.Name+": "+msg)
 		a.mu.Unlock()
 		return "Delivered to the user.", false

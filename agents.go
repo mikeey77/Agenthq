@@ -35,9 +35,12 @@ type Agent struct {
 	Cwd                string     `json:"cwd"`
 	Model              string     `json:"model"`
 	Color              string     `json:"color"`
-	Kind               string     `json:"kind"`                  // lead research build test write review web design data ops other
-	ToolKind           string     `json:"toolKind"`              // browser web search file edit terminal app agent
-	ToolTarget         string     `json:"toolTarget"`            // url host, file name, command, connector
+	Kind               string     `json:"kind"`       // lead research build test write review web design data ops other
+	ToolKind           string     `json:"toolKind"`   // browser web search file edit terminal app agent
+	ToolTarget         string     `json:"toolTarget"` // url host, file name, command, connector
+	ProjectID          string     `json:"projectId,omitempty"`
+	TaskID             string     `json:"taskId,omitempty"`
+	Files              []string   `json:"files,omitempty"`       // files it created or changed, newest first
 	LimitPaused        bool       `json:"limitPaused,omitempty"` // parked until the usage limit resets
 	LimitUntil         time.Time  `json:"limitUntil,omitempty"`
 	Status             string     `json:"status"` // queued running waiting paused idle done stopped error
@@ -266,6 +269,29 @@ func (a *App) emit(level, agentID, text string) {
 		if c.TgUpdates {
 			go a.tgSendText("🟢 "+text, c.TgSilent, nil)
 		}
+	case "shot": // update with a picture of the agent's browser page
+		if c.TgUpdates {
+			go func() {
+				if img, err := a.browser.Screenshot(agentID, ""); err == nil && len(img) > 0 {
+					if _, err := a.tgSendPhoto(img, "🟢 "+text, c.TgSilent, nil); err == nil {
+						return
+					}
+				}
+				a.tgSendText("🟢 "+text, c.TgSilent, nil)
+			}()
+		}
+	case "limit": // usage limit reached: card with the reset time
+		if c.TgCritical || c.TgUpdates {
+			go a.tgCard(a.limitCard(), text, false, nil)
+		}
+	case "done": // a mission lead finished: send a result card
+		if c.TgUpdates {
+			if ag := a.agents[agentID]; ag != nil {
+				go a.tgCard(a.doneCard(ag), "✅ "+text, c.TgSilent, nil)
+			} else {
+				go a.tgSendText("✅ "+text, c.TgSilent, nil)
+			}
+		}
 	case "chatter":
 		if c.TgChatter {
 			go a.tgSendText("💬 "+text, true, nil)
@@ -310,6 +336,11 @@ func (a *App) createAgent(name, role, mission string, parent *Agent, cwd, model 
 		}
 		conns = parent.Connectors
 	}
+	projectID, taskID := a.nextProject, a.nextTask // set by callers starting project work
+	a.nextProject, a.nextTask = "", ""
+	if parent != nil {
+		projectID, taskID = parent.ProjectID, ""
+	}
 	if model == "" {
 		model = a.cfg.DefaultModel
 	}
@@ -319,7 +350,7 @@ func (a *App) createAgent(name, role, mission string, parent *Agent, cwd, model 
 	ag := &Agent{
 		ID: newID(), Name: a.uniqueName(name), Role: role, Mission: mission, Cwd: cwd, Model: model,
 		Status: "queued", Depth: depth,
-		Created: time.Now(), Updated: time.Now(), Connectors: conns,
+		Created: time.Now(), Updated: time.Now(), Connectors: conns, ProjectID: projectID, TaskID: taskID,
 	}
 	if parent != nil {
 		ag.ParentID = parent.ID
@@ -427,7 +458,11 @@ func (a *App) systemPrompt(ag *Agent) string {
 			connText += ", each call needs the user's approval"
 		}
 	}
-	return connText + "\n\n" + fmt.Sprintf(`You are %q, an autonomous agent inside Agent HQ: a control room where a human (the user) supervises a team of AI agents.
+	projText := "\nProjects: you are not in a project. If the user asks for a new app, website or longer-running project, call create_project first so it gets its own folder and task board."
+	if p := a.projectByID(ag.ProjectID); p != nil {
+		projText = "\n" + p.taskBoard() + "\nKeep this board current with add_task and update_task: move tasks you work on to doing, finished ones to review."
+	}
+	return connText + projText + "\n\n" + fmt.Sprintf(`You are %q, an autonomous agent inside Agent HQ: a control room where a human (the user) supervises a team of AI agents.
 Your role: %s. %s
 Working directory: %s
 
@@ -441,6 +476,11 @@ Agent HQ tools (mcp__hq__*):
 
 Browser (mcp__hq__browser_*): browser_open, browser_read, browser_click, browser_type, browser_scroll, browser_back, browser_screenshot.
 Whenever a task needs a real web page (shops, logins, forms, pages WebFetch cannot read), use these: the user watches this browser live inside Agent HQ and can take over. Never enter passwords or payment details yourself; ask the user to do it in the Agent HQ browser.
+
+GitHub (mcp__hq__github_*): github_create_repo(name, description, private, push) creates a repo on the user's account and pushes your folder; github_push(message) pushes new work. Repos are private unless the user asked for public. Prefer these over the gh CLI.
+Projects (mcp__hq__*): create_project, project_tasks, add_task, update_task.
+
+Images on Telegram: report(level, message, screenshot=true) attaches the current Agent HQ browser page, use it when a page is worth seeing.
 
 Autonomy: you have full permissions and nobody approves your individual steps. Be smart with that:
 - Just do normal work (reading, searching, writing files in your working directory, running builds and tests) without asking.
@@ -631,6 +671,10 @@ func (a *App) handleStream(ag *Agent, m map[string]any) {
 				if k, t := toolKind(str(pm, "name"), in); k != "" {
 					ag.ToolKind, ag.ToolTarget = k, t
 				}
+				switch str(pm, "name") {
+				case "Edit", "Write", "MultiEdit", "NotebookEdit":
+					ag.noteFile(str(in, "file_path", "notebook_path"))
+				}
 			}
 		}
 	case "user":
@@ -731,7 +775,8 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 			a.deliver(parent, fmt.Sprintf(dict["en"]["agent_finished_parent"], ag.Name, ag.Summary), false)
 			a.emit("info", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 300)))
 		} else {
-			a.emit("update", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 600)))
+			a.taskFinished(ag, true)
+			a.emit("done", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 600)))
 			a.termAdd("ag", ag.Name+": "+truncate(ag.Summary, 1200))
 		}
 	} else {
@@ -939,6 +984,7 @@ func (a *App) expireDecisions(agentID string, onlyPermissions bool) {
 // ---------- persistence ----------
 
 type savedState struct {
+	Projects  []*Project  `json:"projects"`
 	Agents    []*Agent    `json:"agents"`
 	Decisions []*Decision `json:"decisions"`
 	Events    []Event     `json:"events"`
@@ -949,7 +995,7 @@ func (a *App) saveState() {
 	if a.demo {
 		return
 	}
-	st := savedState{Events: a.events, EvSeq: a.evSeq}
+	st := savedState{Events: a.events, EvSeq: a.evSeq, Projects: a.projects}
 	for _, id := range a.order {
 		st.Agents = append(st.Agents, a.agents[id])
 	}
@@ -973,6 +1019,7 @@ func (a *App) loadState() {
 	if readJSON(filepath.Join(configDir(), "state.json"), &st) != nil {
 		return
 	}
+	a.projects = st.Projects
 	for _, ag := range st.Agents {
 		if ag.Status == "running" || ag.Status == "waiting" || ag.Status == "queued" {
 			ag.Status = "paused"

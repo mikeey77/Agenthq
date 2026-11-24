@@ -441,6 +441,45 @@ label.l small{font-weight:400;color:var(--muted)}
 .tab .live{position:absolute;top:8px;right:16px;width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
 .tab{position:relative}
 .limitpill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:8px;background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn);font:600 12px var(--mono)}.limitpill .ic{width:13px;height:13px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.pcard{position:relative;display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:var(--r3,14px);background:var(--s1);border:1px solid var(--edge);cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,transform .15s}
+.pcard:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);transform:translateY(-1px)}
+.pcard::before{content:"";position:absolute;inset:0 0 auto;height:3px;border-radius:var(--r3,14px) var(--r3,14px) 0 0;background:var(--c);opacity:.85}
+.pcard header{display:flex;align-items:center;gap:10px}.pcard h3{font-size:17px;margin:0}.pcard p{color:var(--dim);font-size:13.5px;margin:0;min-height:20px}
+.pdot{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.pbots{margin-left:auto;display:flex}.pbots .bav{width:26px;height:26px;border-radius:8px;margin-left:-6px;border:2px solid var(--s1)}.pbots .bav .tk{display:none}
+.pbar{display:block;height:6px;border-radius:4px;background:var(--s2);overflow:hidden}.pbar i{display:block;height:100%;border-radius:4px;background:var(--c)}
+.pnums{display:flex;gap:12px;font-size:12px;color:var(--dim)}.pnums b{color:var(--hi);font-family:var(--mono)}.pnums .r{margin-left:auto;font:600 12px var(--mono);color:var(--hi)}
+.pcard footer{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.pnew{align-items:center;justify-content:center;text-align:center;border-style:dashed;min-height:190px;color:var(--dim)}.pnew::before{display:none}.pnew .ic{width:26px;height:26px;color:rgba(var(--a),.9)}.pnew b{color:var(--hi)}.pnew span{font-size:13px}
+.pbhead{align-items:flex-end}.pbhead h1{display:flex;align-items:center;gap:12px}.pbhead .back{margin:-6px 0 8px -8px}
+.ppath{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:6px}.ppath .ic{width:13px;height:13px}
+.pacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.kboard{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;align-items:start;margin-bottom:22px}
+.kcol{--k:#9aa3b2;padding:10px;border-radius:var(--r3,14px);background:color-mix(in srgb,var(--s1) 70%,transparent);border:1px solid var(--edge);min-height:220px;transition:border-color .15s,background .15s}
+.kcol.over{border-color:var(--k);background:color-mix(in srgb,var(--k) 7%,var(--s1))}
+.kcol h4{display:flex;align-items:center;gap:8px;margin:2px 4px 10px;font-size:13px}.kcol h4 i{width:8px;height:8px;border-radius:50%;background:var(--k)}.kcol h4 span{margin-left:auto;font:600 12px var(--mono);color:var(--dim)}
+.tc-todo{--k:#9aa3b2}.tc-doing{--k:#6aa7ff}.tc-review{--k:#f5c451}.tc-done{--k:#3ecf8e}
+.pnums .tc-doing b{color:#6aa7ff}.pnums .tc-review b{color:#f5c451}.pnums .tc-done b{color:#3ecf8e}
+.tadd{height:34px;margin-bottom:8px;font-size:13px}
+.tcard{padding:11px 12px;border-radius:11px;background:var(--s1);border:1px solid var(--edge);border-left:3px solid var(--k);margin-bottom:8px;cursor:grab;transition:transform .12s,box-shadow .12s}
+.tcard:hover{box-shadow:0 6px 18px rgba(0,0,0,.25)}.tcard.drag{opacity:.4}
+.tt{font-size:13.5px;font-weight:600;color:var(--hi);line-height:1.35}.tn{font-size:12.5px;color:var(--dim);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tf{display:flex;align-items:center;gap:6px;margin-top:9px;min-height:26px;font-size:12px}.tf .r{margin-left:auto;display:flex;gap:4px}
+.tf .tag{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.tf .bav{width:22px;height:22px;border-radius:7px}.tf .bav .tk{display:none}
+.kempty{padding:18px 8px;text-align:center;font-size:12.5px;color:var(--muted);border:1px dashed var(--edge);border-radius:10px}
+.modal.wide{width:min(820px,94vw)}
+.fmhead{display:flex;align-items:center;gap:12px;margin-bottom:12px}.fmhead>.bav{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:rgba(var(--a),.14);color:var(--acc)}.fmhead h2{margin:0}
+.crumbs{display:flex;flex-wrap:wrap;gap:2px;align-items:center;font:12px var(--mono)}.crumb{background:none;border:0;color:var(--dim);font:inherit;padding:2px 4px;border-radius:5px;cursor:pointer}.crumb:hover{color:var(--hi);background:var(--s2)}
+.flist{display:flex;flex-direction:column;max-height:46vh;overflow:auto;border:1px solid var(--edge);border-radius:12px}
+.frow{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 12px;border:0;border-bottom:1px solid var(--edge);background:none;color:inherit;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.frow:last-child{border-bottom:0}.frow:hover{background:var(--s2)}.frow .ic{width:16px;height:16px;color:var(--dim)}.frow.dir .ic{color:rgba(var(--a),.9)}
+.frow .fn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--hi)}.frow .fp{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.frow .bav{width:20px;height:20px;border-radius:6px}.frow .bav .tk{display:none}
+.dfold{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 6px;font-size:12px;color:var(--dim)}.dfold>.ic{width:15px;height:15px}.dfold .mono{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wproj{display:flex;flex-direction:column;gap:4px}.wp{display:grid;grid-template-columns:12px minmax(0,1fr) 90px 44px 34px;gap:10px;align-items:center;padding:8px 6px;border:0;background:none;color:inherit;font:inherit;font-size:13px;text-align:left;border-radius:8px;cursor:pointer}.wp:hover{background:var(--s2)}.wp b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wp .mono{font-size:12px;color:var(--dim)}.wp .tc-doing{color:#6aa7ff;font-size:12px}
+.dec-em{margin-right:4px}
+@media(max-width:1100px){.kboard{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* slash menu */
 #slash{position:fixed;z-index:400;display:none;width:360px;max-height:320px;overflow:auto;padding:5px;border-radius:12px;background:rgb(var(--b));border:1px solid var(--edge2);box-shadow:0 16px 40px rgba(0,0,0,.45)}
 #slash.show{display:block}
@@ -461,6 +500,7 @@ label.l small{font-weight:400;color:var(--muted)}
     <div class="brand" title="Agent HQ" onclick="go('home')"><div class="bav s-idle" id="brandBot" style="--c:rgb(var(--a))"></div></div>
     <button class="tab on" data-view="home"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span data-i="nav_home"></span></button>
     <button class="tab" data-view="agents"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/></svg><span data-i="nav_agents"></span></button>
+    <button class="tab" data-view="projects"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16M15 4v16M5.5 8h1.5M11 8h2M17 8h1.5M5.5 11h1.5M11 11h2"/></svg><span data-i="nav_projects"></span></button>
     <button class="tab" data-view="browser"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M6.5 6.6h.01M9 6.6h.01"/></svg><span data-i="nav_browser"></span><i class="live" id="browserLive" style="display:none"></i></button>
     <button class="tab" data-view="decisions"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg><span data-i="nav_decisions"></span><b class="badge" id="navBadge"></b></button>
     <button class="tab" data-view="connectors"><svg class="ic" viewBox="0 0 24 24"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></svg><span data-i="nav_connectors"></span></button>
@@ -494,6 +534,7 @@ label.l small{font-weight:400;color:var(--muted)}
     <div class="cols"><div class="card"><div class="alist" id="agentList"></div></div>
       <div class="card"><header><h3><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg><span data-i="waiting_on_you"></span></h3></header><div class="body" id="decsSide"></div></div></div>
   </section>
+  <section class="view" id="v-projects"><div id="projWrap"></div></section>
   <section class="view" id="v-browser">
     <div class="phead"><div><h1 data-i="nav_browser_full"></h1><p data-i="browser_sub"></p></div></div>
     <div class="bwrap"><div class="btabs" id="btabs"></div>
@@ -529,10 +570,12 @@ label.l small{font-weight:400;color:var(--muted)}
   <div class="two"><div><label class="l" for="mName" data-i="lead_name"></label><input class="inp" id="mName"></div>
   <div><label class="l" for="mModel" data-i="model"></label><select class="inp" id="mModel"><option value="" data-i="model_default"></option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></div></div>
   <label class="l" for="mCwd"><span data-i="folder"></span> <small data-i="folder_hint"></small></label><input class="inp" id="mCwd" spellcheck="false">
+  <div id="mProjBox"><label class="l" for="mProj" data-i="project"></label><select class="inp" id="mProj"></select></div>
   <div id="mConns"></div>
   <div class="actions"><button class="btn ghost" onclick="hide('missionModal')" data-i="cancel"></button><button class="btn pri" onclick="launchMission()" data-i="start_mission"></button></div>
 </div></div>
 <div class="scrim" id="connModal"><div class="modal" role="dialog" aria-modal="true" id="connBody"></div></div>
+<div class="scrim" id="genModal" onclick="if(event.target===this)hide('genModal')"><div class="modal" role="dialog" aria-modal="true" id="genBody"></div></div>
 <div class="scrim" id="widgetModal"><div class="modal" role="dialog" aria-modal="true" id="widgetBody"></div></div>
 <div class="scrim" id="wizard"><div class="modal" role="dialog" aria-modal="true" id="wizBody"></div></div>
 <div class="scrim" id="palette" onclick="if(event.target===this)hide('palette')"><div class="modal" role="dialog" aria-modal="true">
@@ -541,7 +584,13 @@ label.l small{font-weight:400;color:var(--muted)}
 <div class="toast" id="toast" role="status"></div>
 <script>
 const I18N={
-en:{lim_until:"Usage limit · agents resume at",nav_browser:"Browser",nav_browser_full:"Browser",browser_sub:"Watch agents browse live. Click on the page or type to take over.",b_empty:"No pages open yet",b_empty_d:"When an agent needs a website it opens here. You can also open one yourself.",b_you:"You",b_typing:"keyboard goes to page",b_ph:"Type a web address or search",w_browser:"Browser",w_browser_d:"Live view of the page an agent is browsing.",
+en:{nav_projects:"Projects",nav_projects_full:"Projects",projects_sub:"A folder, a task board and the agents working on it.",new_project:"New project",new_project_d:"Gets its own folder and task board. Agents keep the board up to date.",
+ t_todo:"To do",t_doing:"Doing",t_review:"Check",t_done:"Done",t_start:"Start",t_approve:"Approve",t_add:"Add a task and press Enter",t_empty_todo:"Nothing planned yet",t_empty_doing:"Start a task to put an agent on it",t_empty_review:"Finished work lands here for you to check",t_empty_done:"—",
+ t_edit:"Task",t_title:"Title",t_notes:"Details for the agent",t_status:"Status",p_team:"Agents on this project",p_name:"Name",p_desc:"Description",p_remove:"Remove board",p_remove_q:"Remove this project board? The folder and files stay.",
+ open_folder:"Open folder",opened_explorer:"Opened in Explorer",file_map:"Files",up:"Up",fm_changed:"Changed by agents",fm_all:"All files",fm_empty:"This folder is empty",files_changed:"Files it changed",
+ project:"Project",no_project:"No project",gh_create:"Create GitHub repo",gh_need_token:"Add a GitHub token in Settings first",gh_mission:"Create a private GitHub repo for the project {n} and push the project folder to it.",
+ gh_token:"GitHub token",gh_token_d:"Lets agents create repos and push. Fine-grained token with Administration + Contents: read and write.",gh_get:"Get a token",tg_images:"Images in Telegram",tg_images_d:"Mission results, /status and limits arrive as picture cards.",
+ sl_projects:"Open projects",w_projects:"Projects",w_projects_d:"Progress of every project.",projects_none_ui:"No projects yet.",create:"Create",save:"Save",lim_until:"Usage limit · agents resume at",nav_browser:"Browser",nav_browser_full:"Browser",browser_sub:"Watch agents browse live. Click on the page or type to take over.",b_empty:"No pages open yet",b_empty_d:"When an agent needs a website it opens here. You can also open one yourself.",b_you:"You",b_typing:"keyboard goes to page",b_ph:"Type a web address or search",w_browser:"Browser",w_browser_d:"Live view of the page an agent is browsing.",
  k_lead:"Lead",k_research:"Research",k_build:"Build",k_test:"Test",k_write:"Write",k_review:"Review",k_web:"Web",k_design:"Design",k_data:"Data",k_ops:"Ops",k_other:"Other",legend_t:"Colors show the kind of work:",
  tk_browser:"browsing",tk_web:"reading",tk_search:"searching",tk_file:"reading file",tk_edit:"editing",tk_terminal:"running",tk_app:"using",tk_agent:"delegating",
  sl_mission:"Start a new mission",sl_spawn:"Create a named agent",sl_pause:"Pause an agent or all",sl_resume:"Continue a paused agent",sl_stop:"Stop an agent or all",sl_delete:"Remove a stopped agent",sl_list:"Show all agents",sl_usage:"Token usage and reset",sl_clear:"Remove finished missions",sl_help:"All commands",sl_browser:"Open the browser",sl_new:"New mission window",sl_settings:"Open settings",sl_connectors:"Open connectors",sl_theme:"Switch dark / light",sl_msg:"Message an agent",sl_all:"every agent",
@@ -598,7 +647,13 @@ en:{lim_until:"Usage limit · agents resume at",nav_browser:"Browser",nav_browse
  w_found:"Found Claude Code at",w_missing:"Claude Code isn't installed or isn't on your PATH. Install it, run claude once to log in, then test again.",
  w_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Press Ctrl K anywhere to give your first mission.",
  next:"Next",back:"Back",skip:"Skip",finish:"Open Agent HQ",answer_sent:"Sent",now:"now"},
-nl:{lim_until:"Limiet bereikt · agents verder om",nav_browser:"Browser",nav_browser_full:"Browser",browser_sub:"Kijk live mee als agents browsen. Klik op de pagina of typ om over te nemen.",b_empty:"Nog geen pagina's open",b_empty_d:"Als een agent een website nodig heeft, opent die hier. Je kunt er ook zelf een openen.",b_you:"Jij",b_typing:"toetsenbord gaat naar pagina",b_ph:"Typ een webadres of zoekopdracht",w_browser:"Browser",w_browser_d:"Live beeld van de pagina die een agent bekijkt.",
+nl:{nav_projects:"Projecten",nav_projects_full:"Projecten",projects_sub:"Een map, een takenbord en de agents die eraan werken.",new_project:"Nieuw project",new_project_d:"Krijgt een eigen map en takenbord. Agents houden het bord bij.",
+ t_todo:"Te doen",t_doing:"Bezig",t_review:"Nakijken",t_done:"Klaar",t_start:"Start",t_approve:"Goedkeuren",t_add:"Typ een taak en druk Enter",t_empty_todo:"Nog niets gepland",t_empty_doing:"Start een taak om er een agent op te zetten",t_empty_review:"Klaar werk komt hier om na te kijken",t_empty_done:"—",
+ t_edit:"Taak",t_title:"Titel",t_notes:"Details voor de agent",t_status:"Status",p_team:"Agents op dit project",p_name:"Naam",p_desc:"Omschrijving",p_remove:"Bord verwijderen",p_remove_q:"Dit projectbord verwijderen? De map en bestanden blijven staan.",
+ open_folder:"Map openen",opened_explorer:"Geopend in Verkenner",file_map:"Bestanden",up:"Omhoog",fm_changed:"Gewijzigd door agents",fm_all:"Alle bestanden",fm_empty:"Deze map is leeg",files_changed:"Bestanden die hij wijzigde",
+ project:"Project",no_project:"Geen project",gh_create:"GitHub-repo maken",gh_need_token:"Voeg eerst een GitHub-token toe bij Instellingen",gh_mission:"Maak een privé GitHub-repo voor het project {n} en push de projectmap ernaar.",
+ gh_token:"GitHub-token",gh_token_d:"Laat agents repo's maken en pushen. Fine-grained token met Administration + Contents: lezen en schrijven.",gh_get:"Token aanmaken",tg_images:"Afbeeldingen in Telegram",tg_images_d:"Missieresultaten, /status en limieten komen als plaatjes binnen.",
+ sl_projects:"Projecten openen",w_projects:"Projecten",w_projects_d:"Voortgang van elk project.",projects_none_ui:"Nog geen projecten.",create:"Maken",save:"Opslaan",lim_until:"Limiet bereikt · agents verder om",nav_browser:"Browser",nav_browser_full:"Browser",browser_sub:"Kijk live mee als agents browsen. Klik op de pagina of typ om over te nemen.",b_empty:"Nog geen pagina's open",b_empty_d:"Als een agent een website nodig heeft, opent die hier. Je kunt er ook zelf een openen.",b_you:"Jij",b_typing:"toetsenbord gaat naar pagina",b_ph:"Typ een webadres of zoekopdracht",w_browser:"Browser",w_browser_d:"Live beeld van de pagina die een agent bekijkt.",
  k_lead:"Leider",k_research:"Onderzoek",k_build:"Bouwen",k_test:"Testen",k_write:"Schrijven",k_review:"Review",k_web:"Web",k_design:"Ontwerp",k_data:"Data",k_ops:"Ops",k_other:"Overig",legend_t:"Kleuren tonen het soort werk:",
  tk_browser:"browst",tk_web:"leest",tk_search:"zoekt",tk_file:"leest bestand",tk_edit:"bewerkt",tk_terminal:"voert uit",tk_app:"gebruikt",tk_agent:"delegeert",
  sl_mission:"Nieuwe missie starten",sl_spawn:"Agent met naam maken",sl_pause:"Agent of alles pauzeren",sl_resume:"Gepauzeerde agent verder",sl_stop:"Agent of alles stoppen",sl_delete:"Gestopte agent verwijderen",sl_list:"Alle agents tonen",sl_usage:"Tokengebruik en reset",sl_clear:"Klaar missies opruimen",sl_help:"Alle commando's",sl_browser:"Browser openen",sl_new:"Venster nieuwe missie",sl_settings:"Instellingen openen",sl_connectors:"Connectors openen",sl_theme:"Donker / licht wisselen",sl_msg:"Bericht aan agent",sl_all:"alle agents",
@@ -664,7 +719,7 @@ const SVG={home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 
  wrench:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',send:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  play:'<path d="M7 4v16l13-8z"/>',pause:'<path d="M8 5v14M16 5v14"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',x:'<path d="M6 6l12 12M18 6 6 18"/>',trash:'<path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13"/>',pin:'<path d="M12 17v5M9 3h6l-1 6 3 3H7l3-3z"/>',
  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',check:'<path d="m5 12 5 5L20 7"/>',refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',book2:'<path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6"/>',
- mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>',map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',back:'<path d="M15 6l-6 6 6 6"/>',external:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',image:'<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',kanban:'<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16M15 4v16M5.5 8h1.5M11 8h2M17 8h1.5M5.5 11h1.5M11 11h2"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
  win:'<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M6.5 6.6h.01M9 6.6h.01"/>',palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.2"/><circle cx="12" cy="7.5" r="1.2"/><circle cx="16" cy="10" r="1.2"/>',at:'<circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/>'};
 const ic=(n,cls='')=>`<svg class="ic ${cls}" viewBox="0 0 24 24">${SVG[n]||''}</svg>`;
 const BOT=`<svg viewBox="0 0 40 40" aria-hidden="true"><g class="rb">
@@ -705,7 +760,7 @@ const tchip=a=>tkOn(a)?`<span class="tchip" style="--c:${a.color}">${ic(TK_IC[a.
 const kindHTML=a=>a.kind?`<span class="kind" style="--c:${a.color}">${t('k_'+a.kind)}</span>`:'';
 document.querySelectorAll('.bav').forEach(e=>e.innerHTML=BOT);
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(b.dataset.view));
-function setCrumb(){const k={browser:'nav_browser_full',agents:'nav_agents_full',decisions:'nav_decisions_full',connectors:'nav_connectors',claude:'nav_claude_full',settings:'nav_settings'}[view];$('crumb').textContent='// '+(k?t(k):'Command center')}
+function setCrumb(){const k={projects:'nav_projects_full',browser:'nav_browser_full',agents:'nav_agents_full',decisions:'nav_decisions_full',connectors:'nav_connectors',claude:'nav_claude_full',settings:'nav_settings'}[view];$('crumb').textContent='// '+(k?t(k):'Command center')}
 function go(v){view=v;document.body.dataset.view=v;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.view===v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));setCrumb();
   if(v==='settings')renderSettings();if(v==='connectors')loadConnectors();if(v==='home')LAYOUT_KEY='';resetCache();if(S)render()}
 async function refresh(){
@@ -726,6 +781,7 @@ function render(){
   if(view==='agents'){setHTML('agentList',agentListHTML(S.agents,true));renderDecs('decsSide',S.decisions);$('agentsSub').textContent=`${S.stats.running} ${t('l_working')} · ${S.decisions.length} ${t('l_waiting')} · ${S.stats.live} ${t('of')} ${S.limits.maxAgents} ${t('l_agents')}`;$('clearBtn').style.display=S.agents.some(a=>!a.parentId&&['done','stopped'].includes(a.status))?'':'none'}
   if(view==='agents'){const used=new Set(S.agents.map(a=>a.kind));setHTML('legend',`<span>${t('legend_t')}</span>`+KINDS.filter(k=>used.has(k)||['lead','research','build','test','write'].includes(k)).map(k=>`<span style="--c:${KIND_C[k]}"><i></i>${t('k_'+k)}</span>`).join(''))}
   if(view==='browser')renderBrowser();
+  if(view==='projects')renderProjects();
   if(view==='decisions'){renderDecs('decsAll',S.decisions);renderHistory()}
   if(view==='claude')renderExternal();
   if(drawerId)renderDrawer();tick();flyMessages();notify();
@@ -773,27 +829,30 @@ function agentListHTML(list,full){
     h+=`<div class="arow s-${a.status}${d?' child':''}${cls}" style="--d:${d}" onclick="openDrawer('${a.id}')" tabindex="0" onkeydown="if(event.key==='Enter')openDrawer('${a.id}')">
      ${bot(a)}<div style="min-width:0"><div class="an">${tagHTML(a,tg)}<b>${esc(a.name)}</b><span class="badge b-${a.status}">${t('s_'+a.status)}</span>${kindHTML(a)}<small>${esc(a.role)}${a.model?' · '+esc(a.model):''}</small></div><div class="aa">${tchip(a)}${esc(a.activity&&a.activity!=='…'?a.activity:'')}</div></div>
      ${full?`<div class="am"><span><b>${a.turns}</b> ${t('turns').toLowerCase()}</span><span><b>${fmtTok(a.inTok+a.outTok)}</b></span><span><b>$${(a.cost||0).toFixed(2)}</b></span>${['running','waiting'].includes(a.status)?`<span data-since="${esc(a.turnStart)}"></span>`:''}</div>`:'<div></div>'}
-     <div class="ctl" onclick="event.stopPropagation()">${ctlHTML(a)}</div></div>`});
+     <div class="ctl" onclick="event.stopPropagation()"><button class="pb" title="${esc(t('open_folder'))}" aria-label="${esc(t('open_folder'))}" onclick="reveal(${esc(JSON.stringify(a.cwd))})">${ic('folder')}</button>${ctlHTML(a)}</div></div>`});
   return h;
 }
+const YES=['yes','ja','ok','allow','toestaan','approve','akkoord','doorgaan','go','proceed','continue','ship','sure','prima'],NO=['no','nee','deny','weiger','cancel','annuleer','stop',"don't",'niet','skip','later'];
+const hasW=(s,ws)=>{s=s.toLowerCase().trim();return ws.some(w=>s===w||/^[ ,.!:]/.test(s.slice(w.length))&&s.startsWith(w))};
+function optEm(o){return o.length===2&&hasW(o[0],YES)&&hasW(o[1],NO)?['✅','❌']:['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']}
 function decHTML(d){const a=S.agents.find(x=>x.id===d.agentId)||{id:'',status:'waiting',color:'#888',name:d.agentName},perm=d.kind==='permission';
   return `<div class="dec${SEEN.boot&&!SEEN.ev['d'+d.id]?' enter':''}"><div class="who">${bot({...a,status:'waiting'})}<div><b>${esc(d.agentName)}</b><small>${t(perm?'permission':'question')}</small></div><span class="r" data-ago="${esc(d.created)}"></span></div>
    <div class="q">${esc(d.question)}</div>${d.detail?(perm?`<div class="code">${esc(d.detail)}</div>`:`<div class="d">${esc(d.detail)}</div>`):''}
-   <div class="opts">${d.options.map((o,i)=>`<button class="opt ${perm?(i===0?'allow':'deny'):''}" data-d="${d.id}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+   <div class="opts">${d.options.map((o,i)=>`<button class="opt ${perm?(i===0?'allow':'deny'):''}" data-d="${d.id}" data-o="${esc(o)}"><span class="dec-em">${optEm(d.options)[i]||''}</span>${esc(o)}</button>`).join('')}</div>
    <div class="own"><input class="inp" data-own="${d.id}" placeholder="${t('own_ph')}"><button class="btn sm" data-ownb="${d.id}">${t('send')}</button></div></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest('.opt[data-d]');if(b){answer(b.dataset.d,b.dataset.o);return}const o=e.target.closest('[data-ownb]');if(o){answer(o.dataset.ownb,o.parentNode.querySelector('input').value)}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.own)answer(e.target.dataset.own,e.target.value)});
 function decsHTML(list){return list.length?list.map(decHTML).join(''):`<div style="display:flex;align-items:center;gap:12px" class="hint"><div class="bav s-done" style="--c:#3ddc84;width:34px;height:34px;border-radius:10px">${BOT}</div>${t('no_dec')}</div>`}
 function renderDecs(el,list){setHTML(el,decsHTML(list));list.forEach(d=>SEEN.ev['d'+d.id]=1)}
 function renderHistory(){setHTML('decHist',(S.recentDecisions||[]).map(d=>`<div class="ev"><time data-ago="${esc(d.answeredAt||d.created)}"></time><i class="dot ${d.status==='answered'?'ok':''}"></i><span><b>${esc(d.agentName)}</b>: ${esc(d.question)}<br><span class="hint">${d.status==='answered'?`${esc(d.answer)} · ${t('via')} ${esc(d.via)}`:t('expired')}</span></span></div>`).join('')||'<div class="empty-n">—</div>')}
-const lvDot={update:'ok',decision:'warn',critical:'bad',usage:'warn',info:'',chatter:'info'};
-function feedHTML(n){const ev=S.events.filter(e=>feedFilter==='all'||e.level===feedFilter||(feedFilter==='critical'&&e.level==='usage')).slice(0,n);
+const lvDot={update:'ok',decision:'warn',critical:'bad',usage:'warn',limit:'warn',done:'ok',shot:'ok',info:'',chatter:'info'};
+function feedHTML(n){const ev=S.events.filter(e=>feedFilter==='all'||e.level===feedFilter||(feedFilter==='critical'&&(e.level==='usage'||e.level==='limit'))||(feedFilter==='update'&&(e.level==='done'||e.level==='shot'))).slice(0,n);
   const fresh=id=>{if(!SEEN.ev[id])SEEN.ev[id]=SEEN.boot?Date.now():1;return Date.now()-SEEN.ev[id]<1500?' fresh':''};
   return ev.map(e=>`<div class="ev ${e.level}${fresh(e.id)}"><time>${hm(e.time)}</time><i class="dot ${lvDot[e.level]}"></i><span class="tx">${esc(e.text)}</span></div>`).join('')||'<div class="empty-n">—</div>'}
 function segHTML(){return `<div class="seg f">${[['all','f_all'],['update','f_updates'],['decision','f_decisions'],['critical','f_critical']].map(([k,l])=>`<button class="${feedFilter===k?'on':''}" onclick="feedFilter='${k}';resetCache();render()">${t(l)}</button>`).join('')}</div>`}
 
 /* ---------- widgets ---------- */
-const WTYPES={stats:{icon:'grid',def:4},agents:{icon:'bot',def:2},decisions:{icon:'alert',def:2},usage:{icon:'gauge',def:1},quick:{icon:'zap',def:1},log:{icon:'list',def:2},terminal:{icon:'term',def:4},notes:{icon:'note',def:1},connectors:{icon:'plug',def:1},agent:{icon:'pin',def:1},mission:{icon:'target',def:2},browser:{icon:'win',def:2}};
+const WTYPES={stats:{icon:'grid',def:4},agents:{icon:'bot',def:2},decisions:{icon:'alert',def:2},usage:{icon:'gauge',def:1},quick:{icon:'zap',def:1},log:{icon:'list',def:2},terminal:{icon:'term',def:4},notes:{icon:'note',def:1},connectors:{icon:'plug',def:1},agent:{icon:'pin',def:1},mission:{icon:'target',def:2},browser:{icon:'win',def:2},projects:{icon:'kanban',def:2}};
 const DEFAULT_LAYOUT=[{id:'w1',type:'stats',w:4},{id:'w2',type:'agents',w:2},{id:'w3',type:'decisions',w:2},{id:'w4',type:'usage',w:1},{id:'w5',type:'quick',w:1},{id:'w6',type:'log',w:2},{id:'w7',type:'terminal',w:4}];
 function layout(){if(!LAYOUT){LAYOUT=Array.isArray(S.layout)&&S.layout.length?S.layout:JSON.parse(JSON.stringify(DEFAULT_LAYOUT))}return LAYOUT}
 let saveT=null;function saveLayout(){clearTimeout(saveT);saveT=setTimeout(()=>api('/api/config',{layout:LAYOUT}).catch(e=>toast(e.message)),400)}
@@ -833,6 +892,8 @@ function updateW(w){const b=$('wb-'+w.id);if(!b)return;
     setHTML(b,h+`</div><button class="btn sm" style="margin-top:10px;width:100%" onclick="go('connectors')">${ic('plug')}${t('nav_connectors')}</button>`);break}
   case 'agent':{const a=pinnedAgent(w),el=$('pa-'+w.id);if(!el)break;const tt=$('wt-'+w.id);if(tt)tt.textContent=a?a.name:t('w_agent');
     setHTML(el,a?`${bot(a)}<b>${esc(a.name)} <span class="badge b-${a.status}">${t('s_'+a.status)}</span></b><div class="act">${esc(a.activity||a.mission)}</div><div class="ctl" style="justify-content:center">${ctlHTML(a)}<button class="pb" title="${t('open')}" onclick="openDrawer('${a.id}')">${ic('list')}</button></div>`:`<div class="hint">${t('no_agent')}</div>`);break}
+  case 'projects':{const P=S.projects||[];setHTML('wr-'+w.id,`<button class="btn sm ghost" onclick="go('projects')">${t('open')}</button>`);
+    setHTML(b,P.length?`<div class="wproj">${P.map(p=>{const pct=p.total?Math.round(p.done/p.total*100):0;return `<button class="wp" style="--c:${p.color}" onclick="openProject('${p.id}')"><i class="pdot"></i><b>${esc(p.name)}</b><span class="pbar"><i style="width:${pct}%"></i></span><span class="mono">${p.done}/${p.total}</span><span class="tc-doing">${cnt(p,'doing')?'▶ '+cnt(p,'doing'):''}</span></button>`}).join('')}</div>`:`<div class="hint">${t('projects_none_ui')}</div>`);break}
   case 'browser':{const tb=BTABS[0];setHTML('wr-'+w.id,`<button class="btn sm ghost" onclick="go('browser')">${t('open')}</button>`);
     if(!tb){setHTML(b,`<div class="hint">${t('b_empty_d')}</div>`);break}const a=S.agents.find(x=>x.id===tb.id);
     if(!b.querySelector('.bmini'))b.innerHTML=`<div class="bmini" onclick="bSel='${tb.id}';go('browser')"><img alt=""><div class="who"></div></div>`;
@@ -872,7 +933,7 @@ function palRender(){const q=$('palIn').value.trim(),ql=q.toLowerCase();palItems
   if(q.startsWith('@')&&S){const [ref,...rest]=q.slice(1).split(' ');S.agents.filter(a=>a.name.startsWith(ref)).forEach(a=>add(t('p_msg'),'send',`@${a.name} ${rest.join(' ')}`,'',()=>rest.join('').trim()?cmd(`@${a.name} ${rest.join(' ')}`):openPalette('@'+a.name+' '),bot(a)))}
   [['pause all','pause'],['stop all','stop'],['clear done','trash'],['usage','gauge'],['list','list'],['help','book']].filter(([c])=>!q||c.includes(ql)).forEach(([c,i])=>add(t('p_cmds'),i,c,'',()=>cmd(c)));
   if(S)S.agents.filter(a=>!q||a.name.includes(ql)).slice(0,6).forEach(a=>add(t('p_agents'),'bot',a.name,t('s_'+a.status),()=>openDrawer(a.id),bot(a)));
-  [['home','nav_home'],['agents','nav_agents_full'],['browser','nav_browser_full'],['decisions','nav_decisions_full'],['connectors','nav_connectors'],['claude','nav_claude_full'],['settings','nav_settings']].filter(([v,k])=>!q||t(k).toLowerCase().includes(ql)).forEach(([v,k])=>add(t('p_go'),'home',t(k),'',()=>go(v)));
+  [['home','nav_home'],['agents','nav_agents_full'],['projects','nav_projects_full'],['browser','nav_browser_full'],['decisions','nav_decisions_full'],['connectors','nav_connectors'],['claude','nav_claude_full'],['settings','nav_settings']].filter(([v,k])=>!q||t(k).toLowerCase().includes(ql)).forEach(([v,k])=>add(t('p_go'),'home',t(k),'',()=>go(v)));
   if(!q)termHist.slice(-4).reverse().forEach(h=>add(t('p_recent'),'refresh',h,'',()=>cmd(h)));
   palSel=Math.max(0,Math.min(palSel,palItems.length-1));let g='',h='';
   palItems.forEach((it,i)=>{if(it.group!==g){g=it.group;h+=`<div class="pal-group">${esc(g)}</div>`}h+=`<div class="pal-item ${i===palSel?'on':''}" data-pi="${i}">${it.extra||ic(it.icon)}<span>${esc(it.label)}</span><small>${esc(it.hint)}</small></div>`});
@@ -889,12 +950,12 @@ async function clearDone(){try{const r=await api('/api/clear',{});toast(t('clear
 async function enableTeams(){try{await api('/api/enable-teams',{});refresh()}catch(e){toast(e.message)}}
 async function quitApp(){if(!confirm(t('confirm_quit')))return;await api('/api/quit',{});document.body.innerHTML='<div style="display:grid;place-items:center;height:100vh;font:700 13px monospace;letter-spacing:.24em;color:#888">AGENT HQ</div>'}
 async function installUpdate(){try{await api('/api/update/install',{});toast(t('upd_down'));refresh()}catch(e){toast(e.message)}}
-function openMission(prefill){['mText','mName','mCwd'].forEach(i=>$(i).value='');$('mText').value=prefill||'';$('mModel').value='';$('mCwd').placeholder=S?S.workspace:'';
+function openMission(prefill,o={}){['mText','mName','mCwd'].forEach(i=>$(i).value='');const P=(S&&S.projects)||[];$('mProjBox').style.display=P.length?'':'none';$('mProj').innerHTML=`<option value="">${t('no_project')}</option>`+P.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');$('mProj').value=o.project||(view==='projects'&&projSel)||'';$('mText').value=prefill||'';$('mModel').value='';$('mCwd').placeholder=S?S.workspace:'';
   const cs=(S&&S.connectors||[]).filter(c=>c.enabled);
   $('mConns').innerHTML=cs.length?`<label class="l">${t('conns_for_mission')}</label><div style="display:flex;flex-wrap:wrap;gap:0 18px">`+cs.map(c=>`<label class="check"><input type="checkbox" class="mc" value="${c.id}" checked><span>${esc(c.name)}</span></label>`).join('')+'</div>':'';
   show('missionModal');setTimeout(()=>$('mText').focus(),30)}
 async function launchMission(){const m=$('mText').value.trim();if(!m)return;const boxes=[...document.querySelectorAll('.mc')];const conns=boxes.length?boxes.filter(b=>b.checked).map(b=>b.value):null;
-  try{const r=await api('/api/mission',{Mission:m,Name:$('mName').value,Cwd:$('mCwd').value,Model:$('mModel').value,Connectors:conns});hide('missionModal');toast(t('mission_started')+': '+r.name);refresh()}catch(e){toast(e.message)}}
+  try{const r=await api('/api/mission',{Project:$('mProj').value,Mission:m,Name:$('mName').value,Cwd:$('mCwd').value,Model:$('mModel').value,Connectors:conns});hide('missionModal');toast(t('mission_started')+': '+r.name);refresh()}catch(e){toast(e.message)}}
 async function openDrawer(id){drawerId=id;show('drawer');$('db')._h=undefined;$('dh')._h=undefined;await loadLog();renderDrawer()}
 function closeDrawer(){drawerId=null;hide('drawer')}
 async function loadLog(){if(!drawerId)return;try{drLog=await api('/api/agent/log?id='+drawerId)}catch(e){drLog=null}}
@@ -904,7 +965,8 @@ function renderDrawer(){const a=S.agents.find(x=>x.id===drawerId);if(!a){closeDr
   const conns=(S.connectors||[]).filter(c=>c.enabled&&(!a.connectors||a.connectors.includes(c.id))).map(c=>esc(c.name)).join(', ');
   const log=((drLog&&drLog.log)||[]).slice(-250).map(l=>`<div class="lg ${l.k}"><time>${hm(l.t)}</time><span class="x${l.k==='text'||l.k==='result'?' md':''}">${l.k==='text'||l.k==='result'?md(l.x):esc(l.x)}</span></div>`).join('');
   const body=`<div class="facts"><div><b>${a.turns}</b><span>${t('turns')}</span></div><div><b>${a.toolCalls}</b><span>${t('tools')}</span></div><div><b>${fmtTok(a.inTok+a.outTok)}</b><span>${t('tokens')}</span></div><div><b>$${(a.cost||0).toFixed(2)}</b><span>${t('cost')}</span></div></div>
-   <div class="hud dsec">${t('mission_t')}</div><div class="mission">${esc(a.mission)}</div><p class="hint">${t('folder_t')}: ${esc(a.cwd)}${conns?`<br>${t('nav_connectors')}: ${conns}`:''}</p><div class="hud dsec">${t('activity')}</div>${log}`;
+   <div class="hud dsec">${t('mission_t')}</div><div class="mission">${esc(a.mission)}</div><div class="dfold">${ic('folder')}<span class="mono">${esc(a.cwd)}</span>${folderBtn(a.cwd,t('open_folder'))}${mapBtn(a.cwd,a.projectId)}</div>${a.projectId&&pOf(a.projectId)?`<p class="hint">${t('project')}: <a href="#" onclick="event.preventDefault();closeDrawer();openProject('${a.projectId}')">${esc(pOf(a.projectId).name)}</a></p>`:''}${conns?`<p class="hint">${t('nav_connectors')}: ${conns}</p>`:''}
+   ${(a.files||[]).length?`<div class="hud dsec">${t('files_changed')}</div><div class="flist">${a.files.slice(0,12).map(f=>`<button class="frow" onclick="reveal(${esc(JSON.stringify(f))})">${ic(fIcon(f))}<span class="fn">${esc(f.split(/[\\/]/).pop())}</span><span class="fp mono">${esc(f.startsWith(a.cwd)?f.slice(a.cwd.length+1):f)}</span>${ic('external')}</button>`).join('')}</div>`:''}<div class="hud dsec">${t('activity')}</div>${log}`;
   const b=$('db');const bt=b.scrollHeight-b.scrollTop-b.clientHeight<40;if(b._h!==body){b._h=body;b.innerHTML=body;if(bt||!b._i){b.scrollTop=b.scrollHeight;b._i=1}}}
 async function sendDrawerMsg(){const v=$('drMsg').value.trim();if(!v||!drawerId)return;$('drMsg').value='';await act(drawerId,'message',v);await loadLog();renderDrawer()}
 $('drMsg').addEventListener('keydown',e=>{if(e.key==='Enter')sendDrawerMsg()});
@@ -1009,6 +1071,8 @@ async function renderSettings(){const c=await api('/api/config');const u=(S&&S.u
    ${row(t('workspace'),t('workspace_d'),`<input class="inp" value="${esc(c.workspace)}" onchange="saveCfg({workspace:this.value.trim()})">`)}
    <div class="srow" style="display:block"><div class="lbl" style="margin-bottom:10px">${t('perm')}</div>${permRadio('sPerm',c.permissionMode,true)}</div>
    ${row(t('max_agents'),'',numIn('maxAgents',c.maxAgents,1,50))}${row(t('max_running'),'',numIn('maxRunning',c.maxRunning,1,20))}${row(t('max_depth'),'',numIn('maxDepth',c.maxDepth,1,6))}${row(t('max_turns'),'',numIn('maxTurns',c.maxTurns,1,500))}</div>
+  <div class="sec-t">GitHub</div><div class="card">${row(t('gh_token'),t('gh_token_d'),`<input class="inp" type="password" value="${esc(c.githubToken||'')}" placeholder="github_pat_…" spellcheck="false" onchange="saveCfg({githubToken:this.value.trim()},false)"><a class="btn sm ghost" href="https://github.com/settings/personal-access-tokens/new" target="_blank">${ic('external')}${t('gh_get')}</a>`)}</div>
+  <div class="sec-t">Telegram</div><div class="card">${row(t('tg_images'),t('tg_images_d'),sw(!c.tgNoImages,`saveCfg({tgNoImages:${!c.tgNoImages}})`))}</div>
   <div class="sec-t">${t('s_usage')}</div><div class="card">${row(t('budget'),t('budget_d'),numIn('tokenBudget',c.tokenBudget,0,100000000))}</div>
   <div class="sec-t">${t('s_updates')}</div><div class="card">
    ${row(t('upd_auto'),t('upd_auto_d'),sw(c.autoUpdate,`saveCfg({autoUpdate:${!c.autoUpdate}})`))}
@@ -1037,6 +1101,85 @@ function wzLang(l){wz.lang=l;LANG=l;applyI18n();renderWizard()}
 async function wzMove(d){const s=wz.step;if(s===1)wz.claudePath=$('wzClaude').value.trim();if(s===2){wz.perm=(document.querySelector('input[name=wzPerm]:checked')||{}).value||'full';wz.workspace=$('wzWs').value.trim()}if(s===3)wz.tok=$('wzTok').value.trim();
   if(s===4&&d>0){const body={lang:wz.lang,claudePath:wz.claudePath,permissionMode:wz.perm,workspace:wz.workspace,setupDone:true};if(wz.tok&&!wz.tok.includes('•'))body.botToken=wz.tok;await api('/api/config',body);hide('wizard');refresh();return}
   wz.step=Math.max(0,Math.min(4,s+d));renderWizard()}
+
+/* ---------- projects ---------- */
+let projSel=null,dragTask=null;
+const TCOLS=[['todo','t_todo'],['doing','t_doing'],['review','t_review'],['done','t_done']];
+const pOf=id=>(S.projects||[]).find(p=>p.id===id);
+const cnt=(p,s)=>p.tasks.filter(x=>x.status===s).length;
+async function reveal(path){try{await api('/api/reveal',{Path:path});toast(t('opened_explorer'))}catch(e){toast(e.message)}}
+const folderBtn=(path,label)=>`<button class="btn sm ghost" title="${esc(t('open_folder'))}" onclick="event.stopPropagation();reveal(${esc(JSON.stringify(path))})">${ic('folder')}${label?esc(label):''}</button>`;
+const mapBtn=(path,pid)=>`<button class="btn sm ghost" title="${esc(t('file_map'))}" onclick="event.stopPropagation();openFiles(${esc(JSON.stringify(path))},'${pid||''}')">${ic('map')}${t('file_map')}</button>`;
+function openProject(id){projSel=id;resetCache();go('projects')}
+function renderProjects(){const P=S.projects||[];const p=projSel&&pOf(projSel);
+  if(!p){projSel=null;
+    setHTML('projWrap',`<div class="phead"><div><h1>${t('nav_projects_full')}</h1><p>${t('projects_sub')}</p></div><button class="btn pri" style="margin-left:auto" onclick="editProject()">${ic('plus')}${t('new_project')}</button></div>
+    <div class="pgrid">${P.map(p=>{const pct=p.total?Math.round(p.done/p.total*100):0;const live=S.agents.filter(a=>a.projectId===p.id&&['running','waiting','queued'].includes(a.status));
+      return `<div class="pcard" style="--c:${p.color}" onclick="openProject('${p.id}')" tabindex="0" onkeydown="if(event.key==='Enter')openProject('${p.id}')">
+       <header><i class="pdot"></i><h3>${esc(p.name)}</h3><div class="pbots">${live.slice(0,5).map(a=>bot(a)).join('')}</div></header>
+       <p>${esc(p.desc||'')}</p>
+       <div class="pbar"><i style="width:${pct}%"></i></div>
+       <div class="pnums">${TCOLS.map(([k,l])=>`<span class="tc-${k}"><b>${cnt(p,k)}</b> ${t(l)}</span>`).join('')}<span class="r">${pct}%</span></div>
+       <footer>${folderBtn(p.folder)}${mapBtn(p.folder,p.id)}${p.repo?`<a class="btn sm ghost" href="${esc(p.repo)}" target="_blank" onclick="event.stopPropagation()">${ic('code')}GitHub</a>`:''}</footer></div>`}).join('')}
+      <button class="pcard pnew" onclick="editProject()">${ic('plus')}<b>${t('new_project')}</b><span>${t('new_project_d')}</span></button></div>`);return}
+  const head=`<div class="phead pbhead" style="--c:${p.color}"><div style="min-width:0"><button class="btn sm ghost back" onclick="projSel=null;resetCache();renderProjects()">${ic('back')}${t('nav_projects_full')}</button>
+     <h1><i class="pdot"></i>${esc(p.name)}</h1><p>${esc(p.desc||'')}</p><div class="ppath mono">${ic('folder')}${esc(p.folder)}</div></div>
+     <div class="pacts">${folderBtn(p.folder,t('open_folder'))}${mapBtn(p.folder,p.id)}
+      ${p.repo?`<a class="btn sm ghost" href="${esc(p.repo)}" target="_blank">${ic('code')}${esc(p.repo.replace(/^https:\/\/github.com\//,''))}</a>`:`<button class="btn sm ghost" onclick="ghRepo('${p.id}')">${ic('code')}${t('gh_create')}</button>`}
+      <button class="btn sm ghost" onclick="editProject('${p.id}')">${ic('wrench')}</button><button class="btn sm pri" onclick="openMission('',{project:'${p.id}'})">${ic('rocket')}${t('new_mission')}</button></div></div>`;
+  const card=x=>{const ag=x.agentId&&S.agents.find(a=>a.id===x.agentId);
+    return `<div class="tcard" draggable="true" data-task="${x.id}" ondragstart="dragTask='${x.id}';this.classList.add('drag')" ondragend="this.classList.remove('drag')" onclick="editTask('${p.id}','${x.id}')">
+     <div class="tt">${esc(x.title)}</div>${x.notes?`<div class="tn">${esc(x.notes)}</div>`:''}
+     <div class="tf">${ag?`<span class="tag" onclick="event.stopPropagation();openDrawer('${ag.id}')">${bot(ag)}${esc(ag.name)}</span>`:`<span class="hint">${x.by&&x.by!=='you'?esc(x.by):t('b_you')}</span>`}
+      <span class="r">${x.status==='todo'?`<button class="btn sm" onclick="event.stopPropagation();startTask('${p.id}','${x.id}')">${ic('play')}${t('t_start')}</button>`:''}${x.status==='review'?`<button class="btn sm" onclick="event.stopPropagation();moveTask('${p.id}','${x.id}','done',-1)">${ic('check')}${t('t_approve')}</button>`:''}</span></div></div>`};
+  const cols=TCOLS.map(([k,l])=>{const it=p.tasks.filter(x=>x.status===k);
+    return `<div class="kcol tc-${k}" data-col="${k}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropTask(event,'${p.id}','${k}')">
+     <h4><i></i>${t(l)}<span>${it.length}</span></h4>${k==='todo'?`<input class="inp tadd" placeholder="${esc(t('t_add'))}" onkeydown="if(event.key==='Enter'&&this.value.trim()){addTask('${p.id}',this.value);this.value=''}">`:''}
+     ${it.map(card).join('')||`<div class="kempty">${t('t_empty_'+k)}</div>`}</div>`}).join('');
+  const team=S.agents.filter(a=>a.projectId===p.id&&a.status!=='stopped');
+  setHTML('projWrap',head+`<div class="kboard">${cols}</div>`+(team.length?`<div class="sec-t">${t('p_team')}</div><div class="card"><div class="alist">${agentListHTML(team,true)}</div></div>`:''))}
+function dropTask(e,pid,col){e.preventDefault();const z=e.currentTarget;z.classList.remove('over');if(!dragTask)return;
+  const cards=[...z.querySelectorAll('.tcard')].filter(c=>c.dataset.task!==dragTask);let idx=cards.length;
+  for(let i=0;i<cards.length;i++){const r=cards[i].getBoundingClientRect();if(e.clientY<r.top+r.height/2){idx=i;break}}
+  const p=pOf(pid),colTasks=p.tasks.filter(x=>x.status===col&&x.id!==dragTask);
+  const globalIdx=idx<colTasks.length?p.tasks.filter(x=>x.id!==dragTask).indexOf(colTasks[idx]):-1;
+  moveTask(pid,dragTask,col,globalIdx);dragTask=null}
+async function moveTask(pid,id,status,index){const p=pOf(pid),x=p&&p.tasks.find(y=>y.id===id);if(x){x.status=status;resetCache();renderProjects()}
+  try{await api('/api/task',{Project:pid,ID:id,Action:'move',Status:status,Index:index});refresh()}catch(e){toast(e.message)}}
+async function addTask(pid,title){try{await api('/api/task',{Project:pid,Action:'add',Title:title.trim()});await refresh();resetCache();renderProjects()}catch(e){toast(e.message)}}
+async function startTask(pid,id){try{await api('/api/task',{Project:pid,ID:id,Action:'start'});toast(t('mission_started'));await refresh();resetCache();renderProjects()}catch(e){toast(e.message)}}
+function ghRepo(pid){const p=pOf(pid);if(!p.github){toast(t('gh_need_token'));go('settings');return}
+  openMission(t('gh_mission').replace('{n}',p.name),{project:pid})}
+function genModal(html){$('genModal').querySelector('.modal').classList.remove('wide');$('genBody').innerHTML=html;show('genModal');setTimeout(()=>{const f=$('genBody').querySelector('input,textarea');if(f)f.focus()},30)}
+function editProject(id){const p=id?pOf(id):null;
+  genModal(`<div class="hero2"><div class="bav wave s-idle" style="--c:${p?p.color:'rgb(var(--a))'}">${BOT}</div><div><h2>${p?esc(p.name):t('new_project')}</h2><p class="lead">${t('new_project_d')}</p></div></div>
+   ${fld('pName',t('p_name'),p?p.name:'')}<label class="l" for="pDesc">${t('p_desc')}</label><textarea class="inp" id="pDesc" style="min-height:70px">${esc(p?p.desc:'')}</textarea>
+   ${fld('pFolder',t('folder')+` <small>${t('folder_hint')}</small>`,p?p.folder:'','text','spellcheck="false"')}${p?fld('pRepo','GitHub',p.repo||'','text','placeholder="https://github.com/you/repo"'):''}
+   <div class="actions">${p?`<button class="btn danger ghost" style="margin-right:auto" onclick="delProject('${p.id}')">${t('p_remove')}</button>`:''}<button class="btn ghost" onclick="hide('genModal')">${t('cancel')}</button><button class="btn pri" onclick="saveProject('${p?p.id:''}')">${p?t('save'):t('create')}</button></div>`)}
+async function saveProject(id){try{const r=await api('/api/project',{ID:id,Action:id?'save':'create',Name:$('pName').value,Desc:$('pDesc').value,Folder:$('pFolder').value,Repo:$('pRepo')?$('pRepo').value:''});hide('genModal');await refresh();if(!id)projSel=r.id;resetCache();renderProjects()}catch(e){toast(e.message)}}
+async function delProject(id){if(!confirm(t('p_remove_q')))return;await api('/api/project',{ID:id,Action:'delete'});hide('genModal');projSel=null;await refresh();resetCache();renderProjects()}
+function editTask(pid,id){const p=pOf(pid),x=p.tasks.find(y=>y.id===id);
+  genModal(`<h2 style="margin-bottom:12px">${t('t_edit')}</h2>${fld('tTitle',t('t_title'),x.title)}<label class="l" for="tNotes">${t('t_notes')}</label><textarea class="inp" id="tNotes" style="min-height:110px">${esc(x.notes||'')}</textarea>
+   <label class="l">${t('t_status')}</label><div class="seg" id="tSt">${TCOLS.map(([k,l])=>`<button class="${x.status===k?'on':''}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');this.parentNode.dataset.v='${k}'">${t(l)}</button>`).join('')}</div>
+   <div class="actions"><button class="btn danger ghost" style="margin-right:auto" onclick="delTask('${pid}','${id}')">${ic('trash')}${t('del')}</button>${x.status==='todo'?`<button class="btn" onclick="hide('genModal');startTask('${pid}','${id}')">${ic('play')}${t('t_start')}</button>`:''}<button class="btn ghost" onclick="hide('genModal')">${t('cancel')}</button><button class="btn pri" onclick="saveTask('${pid}','${id}')">${t('save')}</button></div>`);$('tSt').dataset.v=x.status}
+async function saveTask(pid,id){try{await api('/api/task',{Project:pid,ID:id,Action:'save',Title:$('tTitle').value,Notes:$('tNotes').value,Status:$('tSt').dataset.v});hide('genModal');await refresh();resetCache();renderProjects()}catch(e){toast(e.message)}}
+async function delTask(pid,id){await api('/api/task',{Project:pid,ID:id,Action:'delete'});hide('genModal');await refresh();resetCache();renderProjects()}
+
+/* ---------- file map ---------- */
+let FM={dir:'',root:'',pid:''};
+const FEXT={md:'doc',txt:'doc',pdf:'doc',docx:'doc',ts:'code',tsx:'code',js:'code',jsx:'code',go:'code',py:'code',html:'code',css:'code',json:'code',png:'img',jpg:'img',jpeg:'img',gif:'img',svg:'img',webp:'img',zip:'box',exe:'box'};
+const fIcon=n=>{const e=(n.split('.').pop()||'').toLowerCase();return {doc:'file',code:'code',img:'image',box:'box'}[FEXT[e]]||'file'};
+const fsize=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(0)+' KB':(b/1048576).toFixed(1)+' MB';
+function openFiles(dir,pid){FM={dir,root:dir,pid:pid||''};genModal('<div id="fmBody"></div>');$('genModal').querySelector('.modal').classList.add('wide');loadFiles()}
+async function loadFiles(){const b=$('fmBody');let r;try{r=await api('/api/files?dir='+encodeURIComponent(FM.dir))}catch(e){r={entries:[],error:e.message}}
+  const sep=FM.dir.includes('\\')?'\\':'/',parts=FM.dir.split(/[\\/]/).filter(Boolean);let acc=FM.dir.startsWith('/')?'':'';
+  const crumbs=parts.map((s,i)=>{acc+=(i||FM.dir.startsWith('/')?sep:'')+s;const d=acc;return i<parts.length-4?'':`<button class="crumb" onclick="FM.dir=${esc(JSON.stringify(d))};loadFiles()">${esc(s)}</button>`}).filter(Boolean).join(`<span class="hint">${sep}</span>`);
+  const touched=[];S.agents.filter(a=>FM.pid?a.projectId===FM.pid:true).forEach(a=>(a.files||[]).forEach(f=>{if(f.startsWith(FM.root)&&!touched.find(x=>x.f===f))touched.push({f,a})}));
+  b.innerHTML=`<div class="fmhead"><div class="bav s-idle" style="--c:rgb(var(--a))">${ic('map')}</div><div style="min-width:0;flex:1"><h2>${t('file_map')}</h2><div class="crumbs">${crumbs}</div></div>
+    <button class="btn sm ghost" ${FM.dir===FM.root?'disabled':''} onclick="FM.dir=${esc(JSON.stringify(r.parent||FM.root))};loadFiles()">${ic('back')}${t('up')}</button>${folderBtn(FM.dir,t('open_folder'))}</div>
+   ${touched.length&&FM.dir===FM.root?`<div class="sec-t" style="margin-top:4px">${t('fm_changed')}</div><div class="flist">${touched.slice(0,8).map(({f,a})=>`<button class="frow" onclick="reveal(${esc(JSON.stringify(f))})">${bot(a)}<span class="fn">${esc(f.split(/[\\/]/).pop())}</span><span class="fp mono">${esc(f.slice(FM.root.length+1))}</span>${ic('external')}</button>`).join('')}</div><div class="sec-t">${t('fm_all')}</div>`:''}
+   <div class="flist">${r.error?`<div class="kempty">${esc(r.error)}</div>`:(r.entries||[]).map(e=>`<button class="frow${e.dir?' dir':''}" onclick="${esc(e.dir?`FM.dir=${JSON.stringify(e.path)};loadFiles()`:`reveal(${JSON.stringify(e.path)})`)}">${ic(e.dir?'folder':fIcon(e.name))}<span class="fn">${esc(e.name)}</span><span class="fp mono">${e.dir?'':fsize(e.size)}</span><time class="hint" data-ago="${esc(e.mtime)}">${ago(e.mtime)}</time></button>`).join('')||`<div class="kempty">${t('fm_empty')}</div>`}</div>
+   <div class="actions"><button class="btn ghost" onclick="hide('genModal')">${t('close')}</button></div>`}
 
 /* ---------- in-app browser ---------- */
 let BTABS=[],bSel=null,bKey=false,bBusy=false;
@@ -1073,7 +1216,7 @@ const SLASH=[
  {c:'pause',a:'<agent|all>',d:'sl_pause',i:'pause',ag:true},{c:'resume',a:'<agent|all>',d:'sl_resume',i:'play',ag:true},
  {c:'stop',a:'<agent|all>',d:'sl_stop',i:'stop',ag:true},{c:'delete',a:'<agent>',d:'sl_delete',i:'trash',ag:true},
  {c:'list',d:'sl_list',i:'list'},{c:'usage',d:'sl_usage',i:'gauge'},{c:'clear done',d:'sl_clear',i:'check'},{c:'help',d:'sl_help',i:'book'},
- {c:'browser',d:'sl_browser',i:'win',ui:()=>go('browser')},{c:'new',d:'sl_new',i:'target',ui:()=>openMission()},
+ {c:'browser',d:'sl_browser',i:'win',ui:()=>go('browser')},{c:'projects',d:'sl_projects',i:'kanban',ui:()=>go('projects')},{c:'new',d:'sl_new',i:'target',ui:()=>openMission()},
  {c:'connectors',d:'sl_connectors',i:'plug',ui:()=>go('connectors')},{c:'settings',d:'sl_settings',i:'wrench',ui:()=>go('settings')},
  {c:'theme',d:'sl_theme',i:'palette',ui:()=>saveCfg({theme:document.documentElement.dataset.theme==='light'?'dark':'light'},false)}];
 let SL={el:null,items:[],sel:0};
@@ -1104,7 +1247,7 @@ document.addEventListener('keydown',e=>{if(!SL.el||e.target!==SL.el||!$('slash')
 document.addEventListener('focusout',e=>{if(e.target===SL.el)setTimeout(slashHide,120)});
 
 applyI18n();go('home');
-refresh().then(()=>{const h=location.hash;const v=h.match(/view=(\w+)/);if(v)go(v[1]);const m=h.match(/agent=(\w+)/);if(m)openDrawer(m[1]);const lk=h.match(/look=(\w+)-(\w+)/);if(lk)setLook(lk[1],lk[2]);if(h.includes('palette'))openPalette('list my github repos');if(h.includes('edit'))toggleEdit();if(h.includes('addw'))openAddWidget();if(h.includes('slash')){const i=document.querySelector('[data-term]');if(i){i.focus();i.value='/';slashShow(i)}}if(h.includes('slpause')){const i=document.querySelector('[data-term]');if(i){i.focus();i.value='/pause ';slashShow(i)}}});
+refresh().then(()=>{const h=location.hash;const v=h.match(/view=(\w+)/);if(v)go(v[1]);const m=h.match(/agent=(\w+)/);if(m)openDrawer(m[1]);const lk=h.match(/look=(\w+)-(\w+)/);if(lk)setLook(lk[1],lk[2]);if(h.includes('palette'))openPalette('list my github repos');if(h.includes('edit'))toggleEdit();if(h.includes('addw'))openAddWidget();{const m=h.match(/project=(\w+)/);if(m){projSel=m[1];go('projects')}}const fm=h.match(/files=(\w+)/);if(fm){setTimeout(()=>{const p=pOf(fm[1]);if(p)openFiles(p.folder,p.id)},300)}if(h.includes('slash')){const i=document.querySelector('[data-term]');if(i){i.focus();i.value='/';slashShow(i)}}if(h.includes('slpause')){const i=document.querySelector('[data-term]');if(i){i.focus();i.value='/pause ';slashShow(i)}}});
 setInterval(refresh,1500);
 </script>
 </body>

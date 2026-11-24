@@ -78,6 +78,30 @@ func (a *App) seedDemo() {
 	for id, m := range missions {
 		a.agents[id].Mission = m
 	}
+	// projects
+	T := func(title, st, agent, by string, mins float64) *PTask {
+		return &PTask{ID: newID()[:6], Title: title, Status: st, AgentID: agent, By: by, Updated: ago(mins)}
+	}
+	gb := &Project{ID: "p1", Name: "Glovebox", Desc: "Receipt and mileage app for small businesses.", Folder: `C:\Users\Michael\AgentHQ\projects\glovebox`,
+		Repo: "https://github.com/mikeey77/glovebox", Color: "#ff8a4c", Created: ago(60 * 24 * 6), Tasks: []*PTask{
+			T("Pick an OCR library", "done", "a2", "atlas", 26), T("Receipt parser (amount, date, shop)", "doing", "a3", "atlas", 4),
+			T("Parser tests with 20 receipts", "doing", "a4", "atlas", 9), T("README and user guide", "todo", "", "atlas", 39),
+			T("CSV export", "todo", "", "you", 300), T("Mileage tracking with GPS", "todo", "", "you", 2000),
+			T("App icon and splash screen", "review", "", "you", 120), T("Project setup + CI", "done", "", "atlas", 3000)}}
+	as := &Project{ID: "p2", Name: "Assistant22", Desc: "Telegram mail and calendar assistant.", Folder: `C:\Users\Michael\Projects\assistant22`,
+		Color: "#6aa7ff", Created: ago(60 * 24 * 20), Tasks: []*PTask{
+			T("Telegram plugin", "review", "b1", "you", 60), T("Release build 1.3", "todo", "", "nova", 59), T("Upwork plugin", "todo", "", "you", 4000),
+			T("WhatsApp bridge", "done", "", "you", 9000), T("Calendar sync", "done", "", "you", 9500)}}
+	a.projects = []*Project{gb, as}
+	for _, id := range []string{"a1", "a2", "a3", "a4", "a5", "a6"} {
+		a.agents[id].ProjectID = "p1"
+		a.agents[id].Cwd = gb.Folder
+	}
+	a.agents["b1"].ProjectID = "p2"
+	a.agents["a3"].Files = []string{gb.Folder + `\src\parser.ts`, gb.Folder + `\src\ocr.ts`, gb.Folder + `\src\app.tsx`, gb.Folder + `\package.json`}
+	a.agents["a4"].Files = []string{gb.Folder + `\test\parser.test.ts`, gb.Folder + `\test\receipts\README.md`}
+	a.agents["a2"].Files = []string{gb.Folder + `\docs\ocr-comparison.md`}
+	a.agents["b1"].Files = []string{as.Folder + `\plugins\telegram.ts`, as.Folder + `\test\telegram.test.ts`}
 	go func() { // a live browser tab for the demo
 		time.Sleep(1500 * time.Millisecond)
 		_, _ = a.browser.Open("a6", "lens", fmt.Sprintf("http://127.0.0.1:%d/assets/demo-shop.html", a.cfg.Port))

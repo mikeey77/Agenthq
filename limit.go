@@ -106,8 +106,9 @@ func (a *App) hitLimit(ag *Agent, msg string) {
 	a.dirty = true
 	a.addLog(ag, "info", "usage limit reached, waiting until "+a.limitUntil.Format("15:04"))
 	if first {
-		a.emit("usage", ag.ID, a.T("limit_hit", a.limitUntil.Format("15:04"), fmtLeft(time.Until(a.limitUntil))))
-		a.termAdd("info", a.T("limit_hit", a.limitUntil.Format("15:04"), fmtLeft(time.Until(a.limitUntil))))
+		msg := a.T("limit_hit", a.limitUntil.Format("15:04"), fmtLeft(time.Until(a.limitUntil)))
+		a.emit("limit", ag.ID, msg)
+		a.termAdd("info", msg)
 	}
 }
 
