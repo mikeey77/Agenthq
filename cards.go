@@ -232,7 +232,7 @@ func (a *App) tgSendPhoto(img []byte, caption string, silent bool, kb any) (int6
 	fw, _ := mw.CreateFormFile("photo", "agenthq.png")
 	_, _ = fw.Write(img)
 	_ = mw.Close()
-	resp, err := httpClient.Post("https://api.telegram.org/bot"+token+"/sendPhoto", mw.FormDataContentType(), &body)
+	resp, err := httpClient.Post(tgAPI+"/bot"+token+"/sendPhoto", mw.FormDataContentType(), &body)
 	if err != nil {
 		a.setTgErr(err)
 		return 0, err
@@ -249,6 +249,22 @@ func (a *App) tgSendPhoto(img []byte, caption string, silent bool, kb any) (int6
 	res, _ := out["result"].(map[string]any)
 	id, _ := res["message_id"].(float64)
 	return int64(id), nil
+}
+
+// tgCardFor sends a card about an agent and remembers it, so replying to the picture talks to that agent.
+func (a *App) tgCardFor(agentID, doc, caption string, silent bool, kb any) {
+	a.mu.Lock()
+	images := !a.cfg.TgNoImages
+	a.mu.Unlock()
+	if images {
+		if img, err := a.browser.RenderHTML(doc, 560); err == nil && len(img) > 0 {
+			if id, err := a.tgSendPhoto(img, caption, silent, kb); err == nil {
+				a.rememberTg(id, agentID)
+				return
+			}
+		}
+	}
+	a.tgAgentSend(agentID, caption, silent, kb)
 }
 
 // tgCard renders a card and sends it, falling back to plain text.

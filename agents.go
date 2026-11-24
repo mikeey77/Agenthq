@@ -257,7 +257,7 @@ func (a *App) emit(level, agentID, text string) {
 	}
 	a.dirty = true
 	c := a.cfg
-	if c.BotToken == "" || c.ChatID == "" || a.demo {
+	if c.BotToken == "" || c.ChatID == "" || a.demo || a.tgQuiet {
 		return
 	}
 	switch level {
@@ -266,8 +266,8 @@ func (a *App) emit(level, agentID, text string) {
 			go a.tgSendText(text, false, nil)
 		}
 	case "update":
-		if c.TgUpdates {
-			go a.tgSendText("🟢 "+text, c.TgSilent, nil)
+		if c.TgUpdates || (agentID != "" && agentID == a.tgFocus) {
+			go a.tgAgentSend(agentID, "🟢 "+text, c.TgSilent && agentID != a.tgFocus, nil)
 		}
 	case "shot": // update with a picture of the agent's browser page
 		if c.TgUpdates {
@@ -285,9 +285,9 @@ func (a *App) emit(level, agentID, text string) {
 			go a.tgCard(a.limitCard(), text, false, nil)
 		}
 	case "done": // a mission lead finished: send a result card
-		if c.TgUpdates {
+		if c.TgUpdates || agentID == a.tgFocus {
 			if ag := a.agents[agentID]; ag != nil {
-				go a.tgCard(a.doneCard(ag), "✅ "+text, c.TgSilent, nil)
+				go a.tgCardFor(agentID, a.doneCard(ag), "✅ "+text, c.TgSilent, nil)
 			} else {
 				go a.tgSendText("✅ "+text, c.TgSilent, nil)
 			}
@@ -305,7 +305,7 @@ func (a *App) emit(level, agentID, text string) {
 					{"text": a.T("btn_stop"), "callback_data": "a:" + agentID + ":stop"},
 				}}}
 			}
-			go a.tgSendText("🚨 "+a.T("critical")+"\n"+text, false, kb)
+			go a.tgAgentSend(agentID, "🚨 "+a.T("critical")+"\n"+text, false, kb)
 		}
 	}
 }
@@ -477,6 +477,7 @@ Agent HQ tools (mcp__hq__*):
 Browser (mcp__hq__browser_*): browser_open, browser_read, browser_click, browser_type, browser_scroll, browser_back, browser_screenshot.
 Whenever a task needs a real web page (shops, logins, forms, pages WebFetch cannot read), use these: the user watches this browser live inside Agent HQ and can take over. Never enter passwords or payment details yourself; ask the user to do it in the Agent HQ browser.
 
+Scheduling: schedule_mission(name, mission, kind, time, days, every_minutes, date) runs a mission later or repeatedly. Use it when the user asks for something recurring or at a later time.
 GitHub (mcp__hq__github_*): github_create_repo(name, description, private, push) creates a repo on the user's account and pushes your folder; github_push(message) pushes new work. Repos are private unless the user asked for public. Prefer these over the gh CLI.
 Projects (mcp__hq__*): create_project, project_tasks, add_task, update_task.
 
@@ -776,7 +777,7 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 			a.emit("info", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 300)))
 		} else {
 			a.taskFinished(ag, true)
-			a.emit("done", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 600)))
+			a.emit("done", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 900)))
 			a.termAdd("ag", ag.Name+": "+truncate(ag.Summary, 1200))
 		}
 	} else {
@@ -785,7 +786,7 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 				a.deliver(parent, fmt.Sprintf(dict["en"]["agent_reply_parent"], ag.Name, ag.lastResult), false)
 				a.emit("info", ag.ID, a.T("replied", ag.Name, truncate(ag.lastResult, 300)))
 			} else {
-				a.emit("update", ag.ID, a.T("replied", ag.Name, truncate(ag.lastResult, 600)))
+				a.emit("update", ag.ID, a.T("replied", ag.Name, truncate(ag.lastResult, 3000)))
 				a.termAdd("ag", ag.Name+": "+truncate(ag.lastResult, 1200))
 			}
 		}
@@ -984,6 +985,7 @@ func (a *App) expireDecisions(agentID string, onlyPermissions bool) {
 // ---------- persistence ----------
 
 type savedState struct {
+	Schedules []*Schedule `json:"schedules"`
 	Projects  []*Project  `json:"projects"`
 	Agents    []*Agent    `json:"agents"`
 	Decisions []*Decision `json:"decisions"`
@@ -995,7 +997,7 @@ func (a *App) saveState() {
 	if a.demo {
 		return
 	}
-	st := savedState{Events: a.events, EvSeq: a.evSeq, Projects: a.projects}
+	st := savedState{Events: a.events, EvSeq: a.evSeq, Projects: a.projects, Schedules: a.schedules}
 	for _, id := range a.order {
 		st.Agents = append(st.Agents, a.agents[id])
 	}
@@ -1020,6 +1022,12 @@ func (a *App) loadState() {
 		return
 	}
 	a.projects = st.Projects
+	a.schedules = st.Schedules
+	for _, s := range a.schedules {
+		if s.Enabled {
+			s.NextRun = s.next(time.Now())
+		}
+	}
 	for _, ag := range st.Agents {
 		if ag.Status == "running" || ag.Status == "waiting" || ag.Status == "queued" {
 			ag.Status = "paused"

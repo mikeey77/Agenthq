@@ -88,6 +88,7 @@ func (a *App) handleMCP(w http.ResponseWriter, r *http.Request) {
 	case "tools/list":
 		tools := append(append([]map[string]any{}, mcpTools...), browserTools...)
 		tools = append(append(tools, projectTools...), githubTools...)
+		tools = append(tools, scheduleTool)
 		reply(map[string]any{"tools": tools}, nil)
 	case "tools/call":
 		var p struct {
@@ -132,6 +133,10 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 		return "unknown agent", true
 	}
 	switch name {
+	case "schedule_mission":
+		text, isErr := a.scheduleFromTool(ag, args)
+		a.mu.Unlock()
+		return text, isErr
 	case "project_tasks", "add_task", "update_task", "create_project":
 		text, isErr := a.projectTool(ag, name, args)
 		a.mu.Unlock()

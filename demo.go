@@ -93,6 +93,14 @@ func (a *App) seedDemo() {
 			T("Telegram plugin", "review", "b1", "you", 60), T("Release build 1.3", "todo", "", "nova", 59), T("Upwork plugin", "todo", "", "you", 4000),
 			T("WhatsApp bridge", "done", "", "you", 9000), T("Calendar sync", "done", "", "you", 9500)}}
 	a.projects = []*Project{gb, as}
+	a.schedules = []*Schedule{
+		{ID: "s1", Name: "Morning mail summary", Mission: "Summarize my unread mail from the last 24 hours and tell me what needs an answer.", Kind: "daily", Time: "07:30", Enabled: true, Runs: 12, LastRun: ago(60 * 15), By: "you"},
+		{ID: "s2", Name: "Glovebox nightly tests", Mission: "Run all Glovebox tests, fix small failures and report what broke.", Project: "p1", Kind: "weekly", Days: []int{1, 2, 3, 4, 5}, Time: "02:00", Enabled: true, Runs: 4, LastRun: ago(60 * 21), By: "atlas"},
+		{ID: "s3", Name: "Price check Xbox Series X", Mission: "Check the price of the Xbox Series X at three Dutch shops and tell me if it drops below 400 euro.", Kind: "interval", Every: 360, Enabled: false, Runs: 7, LastRun: ago(60 * 30), By: "you"},
+	}
+	for _, s := range a.schedules {
+		s.NextRun = s.next(time.Now())
+	}
 	for _, id := range []string{"a1", "a2", "a3", "a4", "a5", "a6"} {
 		a.agents[id].ProjectID = "p1"
 		a.agents[id].Cwd = gb.Folder

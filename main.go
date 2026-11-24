@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,7 +28,7 @@ var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.5.0" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.6.0" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -36,6 +37,10 @@ type TermLine struct {
 }
 
 type App struct {
+	schedules   []*Schedule
+	tgFocus     string // agent the Telegram chat is talking to
+	tgQuiet     bool
+	tgAgentMsgs map[int64]string // Telegram message → agent, for replies
 	projects    []*Project
 	nextProject string
 	nextTask    string
@@ -220,7 +225,7 @@ func (a *App) stateJSON() map[string]any {
 		"version": version, "lang": a.cfg.Lang, "theme": a.cfg.Theme, "accent": a.cfg.Accent, "layout": a.cfg.Layout, "setupDone": a.cfg.SetupDone, "demo": a.demo,
 		"claudePath": claude, "claudeFound": claude != "",
 		"agents": views, "decisions": a.pendingDecisions(), "recentDecisions": recent,
-		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a), "projects": a.projectViews(),
+		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a), "projects": a.projectViews(), "schedules": a.scheduleViews(), "tgFocus": a.tgFocus,
 		"stats": stats, "connectors": conns, "update": func() UpdateInfo { u := a.upd; u.Current = version; return u }(), "autoUpdate": a.cfg.AutoUpdate, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
 		"permissionMode": a.cfg.PermissionMode, "workspace": a.cfg.Workspace, "term": append([]TermLine{}, a.term...),
 		"limits": map[string]int{"maxAgents": a.cfg.MaxAgents, "maxRunning": a.cfg.MaxRunning},
@@ -240,6 +245,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/assets/icon.png", 302) })
 	a.browserRoutes(mux)
 	a.projectRoutes(mux)
+	a.scheduleRoutes(mux)
 	a.connectorRoutes(mux)
 	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })
@@ -439,6 +445,67 @@ func (a *App) routes() http.Handler {
 		}
 		writeJSON(w, map[string]bool{"ok": true})
 	})
+	// setup helpers: check a bot token, a GitHub token, and open the demo
+	mux.HandleFunc("/api/telegram/check", func(w http.ResponseWriter, r *http.Request) {
+		var in struct{ Token string }
+		_ = readBody(r, &in)
+		a.mu.Lock()
+		if t := strings.TrimSpace(in.Token); t != "" && !strings.Contains(t, "•") && t != a.cfg.BotToken {
+			a.cfg.BotToken, a.cfg.ChatID = t, ""
+			_ = saveConfig(a.cfg)
+		}
+		token := a.cfg.BotToken
+		a.mu.Unlock()
+		if token == "" {
+			http.Error(w, "no token", 400)
+			return
+		}
+		res, err := a.tgCall("getMe", map[string]any{})
+		if err != nil {
+			http.Error(w, "Telegram does not accept this token", 400)
+			return
+		}
+		me, _ := res["result"].(map[string]any)
+		writeJSON(w, map[string]any{"bot": str(me, "username"), "name": str(me, "first_name"), "linked": a.chatID() != ""})
+	})
+	mux.HandleFunc("/api/github/check", func(w http.ResponseWriter, r *http.Request) {
+		var in struct{ Token string }
+		_ = readBody(r, &in)
+		a.mu.Lock()
+		if t := strings.TrimSpace(in.Token); t != "" && !strings.Contains(t, "•") {
+			a.cfg.GitHubToken = t
+			_ = saveConfig(a.cfg)
+		}
+		token := a.githubToken()
+		a.mu.Unlock()
+		if token == "" {
+			http.Error(w, "no token", 400)
+			return
+		}
+		login, err := ghLogin(token)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+		writeJSON(w, map[string]string{"login": login})
+	})
+	mux.HandleFunc("/api/demo", func(w http.ResponseWriter, r *http.Request) {
+		if a.demo {
+			writeJSON(w, map[string]bool{"ok": true})
+			return
+		}
+		exe, err := os.Executable()
+		if err == nil {
+			cmd := hiddenCmd(exe, "--demo", "--window")
+			cmd.Env = append(os.Environ(), "AGENTHQ_HOME="+filepath.Join(configDir(), "demo"), "AGENTHQ_PORT=7790")
+			err = cmd.Start()
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		writeJSON(w, map[string]string{"url": "http://127.0.0.1:7790"})
+	})
 	mux.HandleFunc("/api/enable-teams", func(w http.ResponseWriter, r *http.Request) {
 		if err := a.enableTeams(); err != nil {
 			http.Error(w, err.Error(), 500)
@@ -499,6 +566,12 @@ func main() {
 	if v := os.Getenv("AGENTHQ_SECRET"); v != "" {
 		app.secret = v
 	}
+	if v := os.Getenv("AGENTHQ_TG_API"); v != "" { // for tests
+		tgAPI = v
+	}
+	if p, err := strconv.Atoi(os.Getenv("AGENTHQ_PORT")); err == nil && p > 0 {
+		app.cfg.Port = p
+	}
 	addr := fmt.Sprintf("127.0.0.1:%d", app.cfg.Port)
 	uiURL := "http://" + addr
 	ln, err := net.Listen("tcp", addr)
@@ -547,6 +620,7 @@ func main() {
 	go app.telegramLoop()
 	if !demo {
 		go app.limitLoop()
+		go app.scheduleLoop()
 	}
 	log.Printf("Agent HQ %s on %s", version, uiURL)
 	go func() { log.Fatal(http.Serve(ln, app.routes())) }()

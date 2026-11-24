@@ -28,7 +28,7 @@ func (a *App) tgCall(method string, payload map[string]any) (map[string]any, err
 		return nil, errors.New("no bot token")
 	}
 	b, _ := json.Marshal(payload)
-	resp, err := httpClient.Post("https://api.telegram.org/bot"+token+"/"+method, "application/json", bytes.NewReader(b))
+	resp, err := httpClient.Post(tgAPI+"/bot"+token+"/"+method, "application/json", bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +82,8 @@ func (a *App) tgSendText(text string, silent bool, kb any) {
 		_, _ = a.tgSendTo(chat, text, silent, kb)
 	}
 }
+
+var tgAPI = "https://api.telegram.org"
 
 var numEmoji = []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"}
 
@@ -234,6 +236,7 @@ func (a *App) telegramLoop() {
 			a.tg.BotName = str(r, "username")
 			a.mu.Unlock()
 			a.setTgErr(nil)
+			go a.tgSetCommands()
 		}
 		res, err := a.tgCall("getUpdates", map[string]any{"offset": offset, "timeout": 25,
 			"allowed_updates": []string{"message", "callback_query", "message_reaction"}})
@@ -285,8 +288,16 @@ func (a *App) handleUpdate(um map[string]any) {
 					a.stopAgent(ag)
 				case "resume":
 					a.resumeAgent(ag)
+				case "talk":
+					a.tgFocus = ag.ID
+				case "log":
+					go a.tgSendText(a.agentLogText(ag), true, nil)
 				}
-				note = ag.Name + ": " + ag.Status
+				note = ag.Name + ": " + a.T("s_"+ag.Status)
+				if data[2] == "talk" {
+					note = a.T("tg_talking", ag.Name)
+					go a.tgSendText("💬 "+a.T("tg_talking", ag.Name)+"\n"+a.T("tg_talk_hint"), true, nil)
+				}
 			}
 		}
 		a.mu.Unlock()
@@ -325,115 +336,5 @@ func (a *App) handleUpdate(um map[string]any) {
 		a.mu.Unlock()
 		return
 	}
-	msg, _ := um["message"].(map[string]any)
-	if msg == nil {
-		return
-	}
-	chat, _ := msg["chat"].(map[string]any)
-	chatID := str(chat, "id")
-	text := strings.TrimSpace(str(msg, "text"))
-	cmd := strings.ToLower(strings.SplitN(strings.SplitN(text, " ", 2)[0], "@", 2)[0])
-	a.mu.Lock()
-	linked := a.cfg.ChatID
-	if linked == "" && cmd == "/start" {
-		a.cfg.ChatID = chatID
-		_ = saveConfig(a.cfg)
-		linked = chatID
-		a.emit("info", "", "Telegram linked")
-		// send decisions that were already waiting before the chat was linked
-		for _, d := range a.decisions {
-			if d.Status == "pending" && d.tgMsgID == 0 {
-				go a.tgSendDecision(d)
-			}
-		}
-	}
-	a.mu.Unlock()
-	if chatID != linked {
-		_, _ = a.tgSendTo(chatID, a.T("tg_other_chat"), false, nil)
-		return
-	}
-	// reply to a decision message = custom answer
-	if rt, ok := msg["reply_to_message"].(map[string]any); ok {
-		mid, _ := rt["message_id"].(float64)
-		a.mu.Lock()
-		did, isDec := a.tgMsgs[int64(mid)]
-		var err error
-		if isDec {
-			ans := text
-			for _, d := range a.decisions {
-				if d.ID == did {
-					if i, ok := matchOption(d.Options, text); ok {
-						ans = d.Options[i]
-					}
-				}
-			}
-			text = ans
-			err = a.answerDecision(did, ans, "telegram")
-		}
-		a.mu.Unlock()
-		if isDec {
-			if err != nil {
-				_, _ = a.tgSendTo(chatID, "❌ "+err.Error(), true, nil)
-			} else {
-				_, _ = a.tgSendTo(chatID, "✅ "+a.T("answered", text), true, nil)
-			}
-			return
-		}
-	}
-	// a bare 1️⃣ / ✅ / ❌ answers the newest open decision
-	if !strings.HasPrefix(text, "/") && len([]rune(text)) <= 4 {
-		a.mu.Lock()
-		var last *Decision
-		for _, d := range a.decisions {
-			if d.Status == "pending" && (last == nil || d.Created.After(last.Created)) {
-				last = d
-			}
-		}
-		answered := ""
-		if last != nil {
-			if i, ok := matchOption(last.Options, text); ok && a.answerDecision(last.ID, last.Options[i], "telegram") == nil {
-				answered = last.Options[i]
-			}
-		}
-		a.mu.Unlock()
-		if answered != "" {
-			_, _ = a.tgSendTo(chatID, "👌 "+a.T("answered", answered), true, nil)
-			return
-		}
-	}
-	rest := ""
-	if parts := strings.SplitN(text, " ", 2); len(parts) == 2 {
-		rest = strings.TrimSpace(parts[1])
-	}
-	var out []string
-	switch cmd {
-	case "/start", "/help":
-		out = []string{a.T("tg_linked")}
-	case "/status":
-		a.mu.Lock()
-		doc := a.statusCard()
-		a.mu.Unlock()
-		go a.tgCard(doc, a.statusText(), false, nil)
-	case "/projects", "/p":
-		out = a.runCommand("projects")
-	case "/agents", "/list":
-		out = a.runCommand("list")
-	case "/usage":
-		out = a.runCommand("usage")
-	case "/mission", "/m":
-		out = a.runCommand("mission " + rest)
-	case "/msg":
-		out = a.runCommand("@" + rest)
-	case "/pause", "/resume", "/stop":
-		out = a.runCommand(strings.TrimPrefix(cmd, "/") + " " + rest)
-	default:
-		if strings.HasPrefix(text, "/") {
-			out = []string{a.T("tg_unknown")}
-		} else if text != "" {
-			out = a.runCommand(text) // plain text = new mission or @agent message
-		}
-	}
-	if len(out) > 0 {
-		_, _ = a.tgSendTo(chatID, strings.Join(out, "\n"), false, nil)
-	}
+	a.handleMessage(um)
 }

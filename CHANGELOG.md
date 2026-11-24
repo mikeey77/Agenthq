@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.6.0
+
+- **Telegram is a full terminal.** Type what you want and an agent starts; keep typing to talk to it. Reply to any agent message to talk to that agent. Send photos and files. /agents shows buttons to talk, pause, stop and read the log; Telegram's own "/" menu lists every command.
+- **Planner.** Missions that run every day, on chosen weekdays, every few hours or once. Agents can plan them too ("every Monday at 9…"). Planned missions wait for the usage reset.
+- **New first-run setup** in six steps: Claude Code check with install help, agent permissions, Telegram with live linking, GitHub, and a choice to run a test mission or open the demo.
+- **Demo mode** from the setup or Settings: a second window with fake agents to try every screen.
+- Clearer screens: short explanations at the top of each page, icons per page, smoother animations.
+
 ## 2.5.0
 
 - **Projects.** Every project gets a folder and a task board (To do, Doing, Check, Done). Drag tasks between columns, press Start to put an agent on a task, and agents keep the board up to date themselves.
