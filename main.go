@@ -26,7 +26,7 @@ var indexHTML []byte
 var fontFS embed.FS
 
 const appName = "AgentHQ"
-const version = "2.0.0"
+const version = "2.0.1"
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -433,6 +433,9 @@ func main() {
 	}
 	app := &App{cfg: loadConfig(), agents: map[string]*Agent{}, tgMsgs: map[int64]string{},
 		usage: newUsageTracker(), claudeDir: claudeDir(), secret: newID() + newID(), demo: demo}
+	if v := os.Getenv("AGENTHQ_SECRET"); v != "" {
+		app.secret = v
+	}
 	addr := fmt.Sprintf("127.0.0.1:%d", app.cfg.Port)
 	uiURL := "http://" + addr
 	ln, err := net.Listen("tcp", addr)

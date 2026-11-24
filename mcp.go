@@ -18,6 +18,9 @@ type rpcReq struct {
 }
 
 func schema(props map[string]any, required ...string) map[string]any {
+	if required == nil {
+		required = []string{} // Claude Code rejects "required": null
+	}
 	return map[string]any{"type": "object", "properties": props, "required": required}
 }
 

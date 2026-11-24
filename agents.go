@@ -57,6 +57,7 @@ type Agent struct {
 
 	cmd         *exec.Cmd
 	interrupted bool
+	mcpRetried  bool
 	lastResult  string
 	resultErr   bool
 	gotResult   bool
@@ -606,6 +607,14 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 		}
 		if msg == "" && waitErr != nil {
 			msg = waitErr.Error()
+		}
+		// Claude Code can start before our MCP server finished connecting: retry once.
+		if strings.Contains(msg, "mcp__hq__") && strings.Contains(msg, "not found") && !ag.mcpRetried {
+			ag.mcpRetried = true
+			ag.NeedsContinue = ag.SessionID != ""
+			ag.Status = "queued"
+			a.addLog(ag, "info", "HQ tools not ready yet, retrying")
+			return
 		}
 		ag.Status = "error"
 		ag.Activity = truncate(msg, 120)
