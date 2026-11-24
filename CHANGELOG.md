@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.4.0
+
+- **Own app window** with a new robot icon instead of a browser tab. Closing it keeps your agents running; start Agent HQ again to reopen it.
+- **In-app browser.** Agents open, read, click and type on real web pages; you watch live in the new Browser view and can take over by clicking or typing.
+- **Activity icons** next to every robot: browsing, editing a file, running a command, using an app.
+- **Colors mean something now:** lead, research, build, test, write, review, web, design, data and ops each have their own color, with a legend.
+- **"/" command menu** in the terminal and command bar, with arrow keys, Tab to complete and agent names for pause/stop.
+- **Smart permissions by default:** agents just work and only ask before risky steps (deleting, paying, sending, system changes).
+- **Usage limits handled:** when your Claude limit runs out, all agents pause, Telegram tells you when it resets, and they continue on their own afterwards. You also get a warning at 90%.
+- **More connectors:** Email (Gmail, Outlook, iCloud, any IMAP), Slack, Desktop Commander, Netlify, Supabase, PostgreSQL, SQLite, Stripe, Google Maps.
+- New NOMAD-style interface with a customizable widget dashboard.
+
 ## 2.2.0
 - Auto-updater: checks GitHub releases every 6 hours, verifies the SHA-256 checksum, installs by itself when no agent is working, otherwise shows "Restart and update". Agents that were working continue after the restart.
 - Updates section in Settings with release notes and a "Check now" button.

@@ -22,12 +22,12 @@ import (
 //go:embed index.html
 var indexHTML []byte
 
-//go:embed fonts
+//go:embed fonts assets
 var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.2.0" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.4.0" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -36,23 +36,27 @@ type TermLine struct {
 }
 
 type App struct {
-	mu        sync.Mutex
-	cfg       Config
-	agents    map[string]*Agent
-	order     []string
-	decisions []*Decision
-	events    []Event
-	evSeq     int64
-	dirty     bool
-	secret    string
-	tg        TelegramState
-	tgMsgs    map[int64]string
-	usage     *UsageTracker
-	external  External
-	claudeDir string
-	demo      bool
-	term      []TermLine
-	upd       UpdateInfo
+	limitUntil  time.Time
+	warnedBlock time.Time
+	browser     *Browser
+	window      bool
+	mu          sync.Mutex
+	cfg         Config
+	agents      map[string]*Agent
+	order       []string
+	decisions   []*Decision
+	events      []Event
+	evSeq       int64
+	dirty       bool
+	secret      string
+	tg          TelegramState
+	tgMsgs      map[int64]string
+	usage       *UsageTracker
+	external    External
+	claudeDir   string
+	demo        bool
+	term        []TermLine
+	upd         UpdateInfo
 }
 
 func (a *App) termAdd(kind string, lines ...string) {
@@ -186,10 +190,10 @@ func (a *App) stateJSON() map[string]any {
 		claude = `C:\Users\Michael\.local\bin\claude.exe`
 	}
 	return map[string]any{
-		"version": version, "lang": a.cfg.Lang, "theme": a.cfg.Theme, "setupDone": a.cfg.SetupDone, "demo": a.demo,
+		"version": version, "lang": a.cfg.Lang, "theme": a.cfg.Theme, "accent": a.cfg.Accent, "layout": a.cfg.Layout, "setupDone": a.cfg.SetupDone, "demo": a.demo,
 		"claudePath": claude, "claudeFound": claude != "",
 		"agents": views, "decisions": a.pendingDecisions(), "recentDecisions": recent,
-		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget),
+		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a),
 		"stats": stats, "connectors": conns, "update": func() UpdateInfo { u := a.upd; u.Current = version; return u }(), "autoUpdate": a.cfg.AutoUpdate, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
 		"permissionMode": a.cfg.PermissionMode, "workspace": a.cfg.Workspace, "term": append([]TermLine{}, a.term...),
 		"limits": map[string]int{"maxAgents": a.cfg.MaxAgents, "maxRunning": a.cfg.MaxRunning},
@@ -205,6 +209,9 @@ func (a *App) routes() *http.ServeMux {
 	})
 	mux.HandleFunc("/mcp/", a.handleMCP)
 	mux.Handle("/fonts/", http.FileServer(http.FS(fontFS)))
+	mux.Handle("/assets/", http.FileServer(http.FS(fontFS)))
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/assets/icon.png", 302) })
+	a.browserRoutes(mux)
 	a.connectorRoutes(mux)
 	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })
@@ -420,6 +427,7 @@ func (a *App) routes() *http.ServeMux {
 			a.saveState()
 			a.mu.Unlock()
 			time.Sleep(300 * time.Millisecond)
+			a.browser.Shutdown()
 			os.Exit(0)
 		}()
 	})
@@ -427,7 +435,7 @@ func (a *App) routes() *http.ServeMux {
 }
 
 func main() {
-	background, demo, updated := false, false, false
+	background, demo, updated, window := false, false, false, false
 	for _, arg := range os.Args[1:] {
 		switch arg {
 		case "--background":
@@ -436,6 +444,8 @@ func main() {
 			demo = true
 		case "--updated":
 			background, updated = true, true
+		case "--window":
+			window = true
 		}
 	}
 	_ = os.MkdirAll(configDir(), 0o755)
@@ -443,7 +453,7 @@ func main() {
 		log.SetOutput(lf)
 	}
 	app := &App{cfg: loadConfig(), agents: map[string]*Agent{}, tgMsgs: map[int64]string{},
-		usage: newUsageTracker(), claudeDir: claudeDir(), secret: newID() + newID(), demo: demo}
+		usage: newUsageTracker(), claudeDir: claudeDir(), secret: newID() + newID(), demo: demo, browser: newBrowser()}
 	if v := os.Getenv("AGENTHQ_SECRET"); v != "" {
 		app.secret = v
 	}
@@ -454,9 +464,9 @@ func main() {
 		time.Sleep(250 * time.Millisecond)
 		ln, err = net.Listen("tcp", addr)
 	}
-	if err != nil { // already running: just open the window
+	if err != nil { // already running: just open a window on it
 		if !background {
-			openUI(uiURL)
+			showWindow(uiURL)
 		}
 		return
 	}
@@ -493,9 +503,30 @@ func main() {
 		}
 	}()
 	go app.telegramLoop()
-	if !background && os.Getenv("AGENTHQ_NO_BROWSER") == "" {
-		go func() { time.Sleep(400 * time.Millisecond); openUI(uiURL) }()
+	if !demo {
+		go app.limitLoop()
 	}
 	log.Printf("Agent HQ %s on %s", version, uiURL)
-	log.Fatal(http.Serve(ln, app.routes()))
+	go func() { log.Fatal(http.Serve(ln, app.routes())) }()
+	if (window || !background) && os.Getenv("AGENTHQ_NO_BROWSER") == "" {
+		app.window = true
+		showWindow(uiURL) // blocks while the app window is open
+		app.window = false
+	}
+	select {} // keep agents running in the background after the window closes
+}
+
+// showWindow opens Agent HQ as its own app window, falling back to an Edge/Chrome app window.
+func showWindow(u string) {
+	if nativeWindow(u) {
+		return
+	}
+	openUI(u)
+}
+
+func limitOut(a *App) any {
+	if a.limited() {
+		return a.limitUntil
+	}
+	return nil
 }

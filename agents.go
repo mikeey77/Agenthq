@@ -35,6 +35,11 @@ type Agent struct {
 	Cwd                string     `json:"cwd"`
 	Model              string     `json:"model"`
 	Color              string     `json:"color"`
+	Kind               string     `json:"kind"`                  // lead research build test write review web design data ops other
+	ToolKind           string     `json:"toolKind"`              // browser web search file edit terminal app agent
+	ToolTarget         string     `json:"toolTarget"`            // url host, file name, command, connector
+	LimitPaused        bool       `json:"limitPaused,omitempty"` // parked until the usage limit resets
+	LimitUntil         time.Time  `json:"limitUntil,omitempty"`
 	Status             string     `json:"status"` // queued running waiting paused idle done stopped error
 	SessionID          string     `json:"sessionId"`
 	Activity           string     `json:"activity"`
@@ -92,7 +97,74 @@ type Event struct {
 }
 
 var agentNames = []string{"atlas", "nova", "orion", "vega", "echo", "juno", "kepler", "lyra", "onyx", "pixel", "quill", "rune", "sage", "titan", "zephyr", "bolt", "cobalt", "ember", "flux", "halo", "iris", "jade", "koda", "mira"}
-var agentColors = []string{"#f0a37f", "#6aa7ff", "#3ecf8e", "#f5c451", "#c792ea", "#ff8fa3", "#5fd7d7", "#a3be8c", "#e0b0ff", "#ffb86c"}
+
+// Colors carry meaning: they show what kind of work an agent does.
+var roleKinds = []struct {
+	kind, color string
+	words       []string
+}{
+	{"test", "#f5c451", []string{"test", "qa", "verif", "check", "controle", "debug"}},
+	{"review", "#5fd7d7", []string{"review", "audit", "critic", "beoordel", "security"}},
+	{"web", "#38bdf8", []string{"browser", "web", "scrap", "crawl", "shop", "deal", "price", "prijs"}},
+	{"research", "#6aa7ff", []string{"research", "onderzo", "analy", "find", "zoek", "scout", "investig"}},
+	{"design", "#ff8fa3", []string{"design", "ui", "ux", "visual", "art", "ontwerp"}},
+	{"write", "#c792ea", []string{"writ", "schrijf", "copy", "doc", "content", "edit", "translat", "vertaal"}},
+	{"data", "#a3d977", []string{"data", "sql", "excel", "sheet", "stat", "financ"}},
+	{"ops", "#f0a37f", []string{"deploy", "devops", "server", "install", "setup", "infra", "ops"}},
+	{"build", "#3ecf8e", []string{"build", "dev", "code", "program", "engineer", "bouw", "implement", "fix", "maker"}},
+}
+
+func roleKind(ag *Agent) (string, string) {
+	if ag.ParentID == "" {
+		return "lead", "#ff8a4c"
+	}
+	words := strings.FieldsFunc(strings.ToLower(ag.Role+" "+ag.Name), func(r rune) bool {
+		return !(r >= 'a' && r <= 'z' || r >= '0' && r <= '9')
+	})
+	for _, k := range roleKinds {
+		for _, kw := range k.words {
+			for _, w := range words {
+				if strings.HasPrefix(w, kw) {
+					return k.kind, k.color
+				}
+			}
+		}
+	}
+	return "other", "#9aa3b2"
+}
+
+// toolKind turns a tool call into the little activity icon shown next to the robot.
+func toolKind(name string, in map[string]any) (string, string) {
+	base := func(p string) string { return filepath.Base(strings.ReplaceAll(p, "\\", "/")) }
+	switch {
+	case strings.HasPrefix(name, "mcp__hq__browser_"), strings.HasPrefix(name, "mcp__playwright"), strings.Contains(name, "browser"):
+		return "browser", host(str(in, "url"))
+	case strings.HasPrefix(name, "mcp__hq__"):
+		return "", ""
+	case strings.HasPrefix(name, "mcp__"):
+		parts := strings.SplitN(strings.TrimPrefix(name, "mcp__"), "__", 2)
+		return "app", parts[0]
+	}
+	switch name {
+	case "Bash", "PowerShell":
+		f := strings.Fields(str(in, "command"))
+		if len(f) > 0 {
+			return "terminal", truncate(base(f[0]), 24)
+		}
+		return "terminal", ""
+	case "Read", "Glob", "Grep", "LS":
+		return "file", truncate(base(str(in, "file_path", "path", "pattern")), 28)
+	case "Edit", "Write", "MultiEdit", "NotebookEdit":
+		return "edit", truncate(base(str(in, "file_path", "notebook_path")), 28)
+	case "WebSearch":
+		return "search", truncate(str(in, "query"), 28)
+	case "WebFetch":
+		return "web", host(str(in, "url"))
+	case "Task":
+		return "agent", truncate(str(in, "description"), 28)
+	}
+	return "", ""
+}
 
 func newID() string {
 	b := make([]byte, 5)
@@ -186,6 +258,10 @@ func (a *App) emit(level, agentID, text string) {
 		return
 	}
 	switch level {
+	case "usage": // limit reached / reset / almost used up
+		if c.TgCritical || c.TgUpdates {
+			go a.tgSendText(text, false, nil)
+		}
 	case "update":
 		if c.TgUpdates {
 			go a.tgSendText("🟢 "+text, c.TgSilent, nil)
@@ -242,12 +318,13 @@ func (a *App) createAgent(name, role, mission string, parent *Agent, cwd, model 
 	}
 	ag := &Agent{
 		ID: newID(), Name: a.uniqueName(name), Role: role, Mission: mission, Cwd: cwd, Model: model,
-		Color: agentColors[len(a.order)%len(agentColors)], Status: "queued", Depth: depth,
+		Status: "queued", Depth: depth,
 		Created: time.Now(), Updated: time.Now(), Connectors: conns,
 	}
 	if parent != nil {
 		ag.ParentID = parent.ID
 	}
+	ag.Kind, ag.Color = roleKind(ag)
 	_ = os.MkdirAll(cwd, 0o755)
 	a.agents[ag.ID] = ag
 	a.order = append(a.order, ag.ID)
@@ -274,7 +351,7 @@ func (a *App) startMission(mission, name, cwd, model string, conns []string) (*A
 // ---------- scheduling ----------
 
 func (a *App) schedule() {
-	if a.demo {
+	if a.demo || a.limited() {
 		return
 	}
 	running := 0
@@ -361,6 +438,14 @@ Agent HQ tools (mcp__hq__*):
 - message_agent(to, message): message another agent (parent, sub-agent or teammate).
 - list_agents(): see all agents and their status.
 - complete(summary): call when your mission is fully done, with a short summary of the result.
+
+Browser (mcp__hq__browser_*): browser_open, browser_read, browser_click, browser_type, browser_scroll, browser_back, browser_screenshot.
+Whenever a task needs a real web page (shops, logins, forms, pages WebFetch cannot read), use these: the user watches this browser live inside Agent HQ and can take over. Never enter passwords or payment details yourself; ask the user to do it in the Agent HQ browser.
+
+Autonomy: you have full permissions and nobody approves your individual steps. Be smart with that:
+- Just do normal work (reading, searching, writing files in your working directory, running builds and tests) without asking.
+- Use ask_decision BEFORE anything that is destructive or hard to undo (deleting or overwriting files outside your working directory, git push --force, dropping data), costs money, sends messages or posts as the user, changes system settings, installs system-wide software, or touches accounts. When in doubt, ask.
+- Never work around a "no" from the user.
 
 When you are waiting on sub-agents, end your turn; their results arrive as new messages.
 Messages that start with [Message from agent ...] or [Sub-agent ...] come from other agents. [Message from the user] comes from the user.
@@ -543,6 +628,9 @@ func (a *App) handleStream(ag *Agent, m map[string]any) {
 				ag.ToolCalls++
 				a.addLog(ag, "tool", s)
 				ag.Activity = s
+				if k, t := toolKind(str(pm, "name"), in); k != "" {
+					ag.ToolKind, ag.ToolTarget = k, t
+				}
 			}
 		}
 	case "user":
@@ -588,6 +676,7 @@ func (a *App) handleStream(ag *Agent, m map[string]any) {
 }
 
 func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string) {
+	ag.ToolKind, ag.ToolTarget = "", ""
 	if ag.cmd != cmd {
 		return
 	}
@@ -617,6 +706,10 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 			a.addLog(ag, "info", "HQ tools not ready yet, retrying")
 			return
 		}
+		if isLimitMsg(msg) || isLimitMsg(stderr) {
+			a.hitLimit(ag, msg+" "+stderr)
+			return
+		}
 		ag.Status = "error"
 		ag.Activity = truncate(msg, 120)
 		a.addLog(ag, "error", truncate(msg, 600))
@@ -624,6 +717,10 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 		if ag.ParentID == "" {
 			a.termAdd("ag", ag.Name+": ❌ "+truncate(msg, 300))
 		}
+		return
+	}
+	if !ag.Completed && len(ag.lastResult) < 200 && strings.Contains(strings.ToLower(ag.lastResult), "limit") && isLimitMsg(ag.lastResult) {
+		a.hitLimit(ag, ag.lastResult)
 		return
 	}
 	parent := a.agents[ag.ParentID]
@@ -699,6 +796,7 @@ func (a *App) resumeAgent(ag *Agent) {
 		return
 	}
 	ag.AutoTurns = 0
+	ag.LimitPaused, ag.LimitUntil = false, time.Time{}
 	if ag.Status == "error" {
 		ag.NeedsContinue = true
 	}
@@ -879,6 +977,14 @@ func (a *App) loadState() {
 		if ag.Status == "running" || ag.Status == "waiting" || ag.Status == "queued" {
 			ag.Status = "paused"
 			ag.NeedsContinue = ag.SessionID != ""
+		}
+		ag.Kind, ag.Color = roleKind(ag)
+		ag.ToolKind, ag.ToolTarget = "", ""
+		if ag.LimitPaused && ag.LimitUntil.After(a.limitUntil) {
+			a.limitUntil = ag.LimitUntil
+		}
+		if ag.LimitPaused && a.limitUntil.IsZero() {
+			a.limitUntil = time.Now()
 		}
 		if ag.ResumeAfterRestart { // paused by an update: continue automatically
 			ag.ResumeAfterRestart = false

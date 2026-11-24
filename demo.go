@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 const fence = "```"
 
@@ -32,8 +36,10 @@ func (a *App) seedDemo() {
 	mk := func(id, name, role, parent, status, activity, model string, depth int, cost float64, turns, tools int, created float64, log []LogEntry) *Agent {
 		ag := &Agent{ID: id, Name: name, Role: role, ParentID: parent, Status: status, Activity: activity, Model: model,
 			Depth: depth, Cost: cost, Turns: turns, ToolCalls: tools, Created: ago(created), Updated: ago(0.2), Cwd: ws,
-			TurnStart: ago(created / 3), Color: agentColors[len(a.order)%len(agentColors)], SessionID: "s-" + id, Log: log,
+			TurnStart: ago(created / 3), SessionID: "s-" + id, Log: log,
 			InTok: int64(cost * 180000), OutTok: int64(cost * 22000)}
+		ag.Kind, ag.Color = roleKind(ag)
+		ag.ToolKind, ag.ToolTarget = toolKindFromActivity(activity)
 		a.agents[id] = ag
 		a.order = append(a.order, id)
 		return ag
@@ -61,8 +67,8 @@ func (a *App) seedDemo() {
 	mk("a4", "probe", "Tester", "a1", "waiting", "asks: Which test framework should I use?", "haiku", 1, 0.11, 2, 9, 39, []LogEntry{
 		L(30, "text", "Collecting 20 sample receipts for the test set."), L(12, "tool", "Write: fixtures.json"), L(1, "tool", "asks: Which test framework should I use?")})
 	mk("a5", "quill", "Docs writer", "a1", "paused", "paused by you", "haiku", 1, 0.05, 1, 4, 39, []LogEntry{L(35, "text", "Drafting README and user guide."), L(20, "info", "paused")})
-	mk("a6", "lens", "Camera UX", "a3", "running", "WebFetch: developer.mozilla.org/…/getUserMedia", "sonnet", 2, 0.18, 1, 7, 6, []LogEntry{
-		L(6, "in", "Build the browser camera capture with crop + auto-rotate."), L(2, "tool", "WebFetch: developer.mozilla.org/…/getUserMedia")})
+	mk("a6", "lens", "Web scout", "a3", "running", "browser_open: pixelmarkt.test", "sonnet", 2, 0.18, 1, 7, 6, []LogEntry{
+		L(6, "in", "Build the browser camera capture with crop + auto-rotate."), L(2, "tool", "WebFetch: developer.mozilla.org/…/getUserMedia"), L(1, "tool", "browser_open: pixelmarkt.test")})
 	b := mk("b1", "nova", "Mission lead", "", "idle", "Telegram plugin done, all 42 tests pass. Ready for a release build?", "sonnet", 0, 0.64, 5, 22, 180, []LogEntry{
 		L(180, "in", "Finish the Telegram plugin for Assistant22 and make all tests pass."), L(61, "text", "Ran the full suite:\n\n"+fence+"\nnpm test\n42 passing (3.1s)\n"+fence+"\n\n**Changes**\n- plugin registry loads Telegram first\n- retry on 429 with backoff\n- new test for `/status`"), L(60, "result", "Telegram plugin done, all 42 tests pass. Ready for a release build?")})
 	b.Mission = "Finish the Telegram plugin for Assistant22 and make all tests pass."
@@ -72,6 +78,10 @@ func (a *App) seedDemo() {
 	for id, m := range missions {
 		a.agents[id].Mission = m
 	}
+	go func() { // a live browser tab for the demo
+		time.Sleep(1500 * time.Millisecond)
+		_, _ = a.browser.Open("a6", "lens", fmt.Sprintf("http://127.0.0.1:%d/assets/demo-shop.html", a.cfg.Port))
+	}()
 	a.decisions = []*Decision{
 		{ID: "d1", AgentID: "a4", AgentName: "probe", Kind: "decision", Question: "Which test framework should I use for the parser?", Detail: "Vitest is faster and works with Vite; Jest has more examples online.", Options: []string{"Vitest", "Jest", "Both (compare)"}, Created: ago(1), Status: "pending", ch: make(chan string, 1)},
 		{ID: "d2", AgentID: "a3", AgentName: "forge", Kind: "permission", Question: "forge wants to use Bash", Detail: "npm install tesseract.js@6 sharp --save", Options: []string{"Allow", "Deny"}, Created: ago(0.4), Status: "pending", ch: make(chan string, 1)},
@@ -135,4 +145,24 @@ func (a *App) demoTicker() {
 		}
 		a.mu.Unlock()
 	}
+}
+
+// toolKindFromActivity guesses the activity icon for demo agents from their activity text.
+func toolKindFromActivity(act string) (string, string) {
+	name, arg, _ := strings.Cut(act, ": ")
+	switch {
+	case strings.HasPrefix(name, "browser_"):
+		return "browser", arg
+	case name == "Edit" || name == "Write":
+		return "edit", arg
+	case name == "Read":
+		return "file", arg
+	case name == "Bash":
+		return "terminal", strings.Fields(arg + " x")[0]
+	case name == "WebFetch":
+		return "web", host("https://" + arg)
+	case name == "WebSearch":
+		return "search", arg
+	}
+	return "", ""
 }

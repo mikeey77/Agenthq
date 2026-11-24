@@ -3,6 +3,7 @@ package main
 // Minimal MCP server (streamable HTTP, JSON responses) that every agent connects to.
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -85,13 +86,25 @@ func (a *App) handleMCP(w http.ResponseWriter, r *http.Request) {
 	case "ping":
 		reply(map[string]any{}, nil)
 	case "tools/list":
-		reply(map[string]any{"tools": mcpTools}, nil)
+		reply(map[string]any{"tools": append(append([]map[string]any{}, mcpTools...), browserTools...)}, nil)
 	case "tools/call":
 		var p struct {
 			Name      string         `json:"name"`
 			Arguments map[string]any `json:"arguments"`
 		}
 		_ = json.Unmarshal(req.Params, &p)
+		if strings.HasPrefix(p.Name, "browser_") {
+			a.mu.Lock()
+			ag := a.agents[id]
+			a.mu.Unlock()
+			if ag == nil {
+				reply(map[string]any{"content": []map[string]any{{"type": "text", "text": "unknown agent"}}, "isError": true}, nil)
+				return
+			}
+			content, isErr := a.browserTool(ag, p.Name, p.Arguments)
+			reply(map[string]any{"content": content, "isError": isErr}, nil)
+			return
+		}
 		text, isErr := a.callTool(r, id, p.Name, p.Arguments)
 		reply(map[string]any{"content": []map[string]any{{"type": "text", "text": text}}, "isError": isErr}, nil)
 	default:
@@ -239,3 +252,5 @@ func (a *App) waitDecision(r *http.Request, d *Decision, timeout time.Duration) 
 	d.late = true
 	return "", false
 }
+
+func encodeB64(b []byte) string { return base64.StdEncoding.EncodeToString(b) }

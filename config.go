@@ -7,29 +7,32 @@ import (
 )
 
 type Config struct {
-	Lang           string      `json:"lang"`
-	SetupDone      bool        `json:"setupDone"`
-	BotToken       string      `json:"botToken"`
-	ChatID         string      `json:"chatId"`
-	TgUpdates      bool        `json:"tgUpdates"`
-	TgSilent       bool        `json:"tgSilent"`
-	TgDecisions    bool        `json:"tgDecisions"`
-	TgCritical     bool        `json:"tgCritical"`
-	TgChatter      bool        `json:"tgChatter"`
-	ClaudePath     string      `json:"claudePath"`
-	Workspace      string      `json:"workspace"`
-	PermissionMode string      `json:"permissionMode"` // ask | edits | full
-	DefaultModel   string      `json:"defaultModel"`
-	MaxAgents      int         `json:"maxAgents"`
-	MaxRunning     int         `json:"maxRunning"`
-	MaxDepth       int         `json:"maxDepth"`
-	MaxTurns       int         `json:"maxTurns"`
-	TokenBudget    int64       `json:"tokenBudget"` // 0 = auto (busiest previous block)
-	Theme          string      `json:"theme"`       // light | dark
-	AutoUpdate     bool        `json:"autoUpdate"`
-	UpdateRepo     string      `json:"updateRepo"`
-	Connectors     []Connector `json:"connectors"`
-	Port           int         `json:"port"`
+	Lang           string          `json:"lang"`
+	SetupDone      bool            `json:"setupDone"`
+	BotToken       string          `json:"botToken"`
+	ChatID         string          `json:"chatId"`
+	TgUpdates      bool            `json:"tgUpdates"`
+	TgSilent       bool            `json:"tgSilent"`
+	TgDecisions    bool            `json:"tgDecisions"`
+	TgCritical     bool            `json:"tgCritical"`
+	TgChatter      bool            `json:"tgChatter"`
+	ClaudePath     string          `json:"claudePath"`
+	Workspace      string          `json:"workspace"`
+	PermissionMode string          `json:"permissionMode"` // ask | edits | full
+	PermVersion    int             `json:"permVersion"`
+	DefaultModel   string          `json:"defaultModel"`
+	MaxAgents      int             `json:"maxAgents"`
+	MaxRunning     int             `json:"maxRunning"`
+	MaxDepth       int             `json:"maxDepth"`
+	MaxTurns       int             `json:"maxTurns"`
+	TokenBudget    int64           `json:"tokenBudget"` // 0 = auto (busiest previous block)
+	Theme          string          `json:"theme"`       // light | dark
+	AutoUpdate     bool            `json:"autoUpdate"`
+	Accent         string          `json:"accent"`
+	Layout         json.RawMessage `json:"layout,omitempty"`
+	UpdateRepo     string          `json:"updateRepo"`
+	Connectors     []Connector     `json:"connectors"`
+	Port           int             `json:"port"`
 }
 
 func configDir() string {
@@ -46,8 +49,8 @@ func defaultConfig() Config {
 	h, _ := os.UserHomeDir()
 	return Config{
 		Lang: "en", TgUpdates: true, TgSilent: true, TgDecisions: true, TgCritical: true,
-		Workspace: filepath.Join(h, "AgentHQ"), PermissionMode: "edits",
-		Theme: "dark", AutoUpdate: true, UpdateRepo: defaultUpdateRepo, MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
+		Workspace: filepath.Join(h, "AgentHQ"), PermissionMode: "full", PermVersion: 2,
+		Theme: "dark", Accent: "orange", AutoUpdate: true, UpdateRepo: defaultUpdateRepo, MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
 	}
 }
 
@@ -80,6 +83,9 @@ func loadConfig() Config {
 	}
 	if c.Lang == "" {
 		c.Lang = "en"
+	}
+	if c.PermVersion < 2 { // v2.3: agents act on their own and ask only when it matters
+		c.PermissionMode, c.PermVersion = "full", 2
 	}
 	return c
 }

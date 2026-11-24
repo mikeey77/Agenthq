@@ -64,6 +64,9 @@ func (a *App) statusText() string {
 // runCommand executes a master-terminal command and returns output lines.
 func (a *App) runCommand(input string) []string {
 	input = strings.TrimSpace(input)
+	if strings.HasPrefix(input, "/") { // slash commands from the "/" menu
+		input = strings.TrimSpace(input[1:])
+	}
 	if input == "" {
 		return nil
 	}

@@ -285,12 +285,16 @@ func (a *App) installUpdate() error {
 	a.saveState()
 	a.mu.Unlock()
 	log.Printf("updating %s -> %s", version, exe)
-	cmd := hiddenCmd(exe, "--background", "--updated")
+	args := []string{"--background", "--updated"}
+	if a.window {
+		args = append(args, "--window") // reopen the app window after updating
+	}
+	cmd := hiddenCmd(exe, args...)
 	if err := cmd.Start(); err != nil {
 		_ = os.Rename(old, exe)
 		return err
 	}
-	go func() { time.Sleep(200 * time.Millisecond); os.Exit(0) }()
+	go func() { time.Sleep(200 * time.Millisecond); a.browser.Shutdown(); os.Exit(0) }()
 	return nil
 }
 
