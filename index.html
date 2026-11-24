@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent HQ</title>
+<style>
+@font-face{font-family:"Barlow";src:url(/fonts/barlow-latin-400-normal.woff2) format("woff2");font-weight:400}
+@font-face{font-family:"Barlow";src:url(/fonts/barlow-latin-500-normal.woff2) format("woff2");font-weight:500}
+@font-face{font-family:"Barlow";src:url(/fonts/barlow-latin-600-normal.woff2) format("woff2");font-weight:600}
+@font-face{font-family:"Barlow SC";src:url(/fonts/barlow-semi-condensed-latin-500-normal.woff2) format("woff2");font-weight:500}
+@font-face{font-family:"Barlow SC";src:url(/fonts/barlow-semi-condensed-latin-600-normal.woff2) format("woff2");font-weight:600}
+@font-face{font-family:"Barlow SC";src:url(/fonts/barlow-semi-condensed-latin-700-normal.woff2) format("woff2");font-weight:700}
+:root,[data-theme=dark]{
+  --bg:#0d1016; --bg2:#10141b; --panel:#151a23; --panel2:#1b212c; --panel3:#222936; --line:#262e3b; --line2:#323c4c;
+  --text:#e9edf3; --muted:#8d97aa; --dim:#5f697b;
+  --accent:#f08a4b; --accent-ink:#1d0e04; --green:#38c172; --amber:#f2b230; --red:#ef4b55; --blue:#5aa2f0; --teal:#4fd1c5;
+  --lampoff:#3a4352; --bezel:#2b3340; --term:#090b10; --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+[data-theme=light]{
+  --bg:#cfd3cf; --bg2:#c4c9c4; --panel:#f7f7f4; --panel2:#eceee9; --panel3:#e2e5e0; --line:#d3d7d2; --line2:#b9bfba;
+  --text:#1f2326; --muted:#545c61; --dim:#7d8589; --accent:#d9692b; --accent-ink:#fff;
+  --lampoff:#a2a8a3; --bezel:#8e958f; --term:#1c2023; --shadow:0 10px 30px rgba(0,0,0,.15);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.45 "Barlow",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);height:100vh}
+
+/* sidebar */
+aside{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 8px 20px}
+.brand .bav{width:40px;height:40px}
+.brand b{font:700 20px/1 "Barlow SC";letter-spacing:.2px;display:block}
+.brand small{color:var(--dim);font-size:12px}
+nav button{display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;padding:9px 11px;border-radius:9px;color:var(--muted);text-align:left;margin-bottom:2px;font-weight:500}
+nav button svg{flex:none;opacity:.8}
+nav button:hover{background:var(--panel);color:var(--text)}
+nav button.on{background:var(--panel2);color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
+nav .badge{margin-left:auto;background:var(--amber);color:#231700;font:700 12px "Barlow SC";border-radius:99px;padding:1px 8px}
+nav .badge:empty{display:none}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:12px 8px 2px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.side-foot .st{display:flex;align-items:center;gap:9px}
+.side-foot button{all:unset;cursor:pointer;color:var(--dim);font-size:13px;margin-top:4px}
+.side-foot button:hover{color:var(--red)}
+
+/* lamps */
+.lamp{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block;background:var(--lampoff);box-shadow:inset 0 -1px 2px rgba(0,0,0,.35),0 0 0 1.5px var(--bezel)}
+.lamp.g{background:radial-gradient(circle at 35% 32%,#b8f5cb,var(--green) 62%);box-shadow:0 0 0 1.5px var(--bezel),0 0 8px rgba(56,193,114,.7)}
+.lamp.a{background:radial-gradient(circle at 35% 32%,#ffe7a6,var(--amber) 62%);box-shadow:0 0 0 1.5px var(--bezel),0 0 8px rgba(242,178,48,.75)}
+.lamp.r{background:radial-gradient(circle at 35% 32%,#ffb3b8,var(--red) 62%);box-shadow:0 0 0 1.5px var(--bezel),0 0 8px rgba(239,75,85,.7)}
+.lamp.b{background:radial-gradient(circle at 35% 32%,#d2e8ff,var(--blue) 62%);box-shadow:0 0 0 1.5px var(--bezel),0 0 7px rgba(90,162,240,.6)}
+.lamp.w{background:radial-gradient(circle at 35% 32%,#fff,#dfe7e4 70%);box-shadow:0 0 0 1.5px var(--bezel)}
+.lamp.blink{animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{background:var(--lampoff);box-shadow:0 0 0 1.5px var(--bezel)}}
+
+/* usage bar */
+main{overflow:auto;min-width:0}
+.usage{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 26px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.usage .lbl{font-weight:600;white-space:nowrap}
+.bargraph{display:flex;gap:3px;align-items:center}
+.bargraph i{width:8px;height:15px;border-radius:2px;background:var(--panel2);box-shadow:inset 0 0 0 1px var(--line)}
+.bargraph i.on{box-shadow:0 0 6px -1px currentColor}
+.bargraph.boot i.on{animation:segon .45s backwards}
+@keyframes segon{from{opacity:.1}}
+.usage .val{font:600 17px "Barlow SC";white-space:nowrap}
+.usage .val small{font:500 14px "Barlow";color:var(--muted)}
+.usage .sub{color:var(--muted);font-size:14px;white-space:nowrap}
+.usage .sub b{color:var(--text);font-weight:600}
+.reset{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);padding:3px 11px;border-radius:99px}
+
+.page{padding:22px 26px 36px;max-width:1700px}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.head h1{font:700 28px/1.1 "Barlow SC";margin:0}
+.head .sp{flex:1}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line2);padding:7px 14px;border-radius:10px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.quiet:hover{color:var(--text);border-color:var(--line2)}
+.btn.danger:hover{color:var(--red);border-color:var(--red)}
+.btn.sm{padding:4px 10px;font-size:14px;border-radius:8px}
+.btn:disabled{opacity:.5}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;position:relative}
+.stat .l{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:8px}
+.stat .n{font:700 28px/1.15 "Barlow SC";margin-top:2px}
+.stat .n small{font:500 15px "Barlow";color:var(--muted)}
+.stat.alert{border-color:color-mix(in srgb,var(--amber) 55%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--amber) 10%,var(--panel)),var(--panel))}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.card>header{display:flex;align-items:center;gap:10px;padding:13px 16px 0}
+.card>header h2{margin:0;font:600 19px "Barlow SC"}
+.card>header .r{margin-left:auto;color:var(--muted);font-size:14px}
+.card .body{padding:12px 16px 16px}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* ---------- robot mascot (the avatar of every agent) ---------- */
+.bav{--c:#f08a4b;position:relative;width:50px;height:50px;border-radius:13px;flex:none;background:color-mix(in srgb,var(--c) 16%,var(--panel2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,transparent);overflow:visible}
+.bav svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.bav .rb{transform-origin:20px 34px}
+.bav .ant{fill:var(--lampoff)}
+.bav .arm{transform-box:view-box;transform-origin:28.5px 29px}
+.bav .eyes{transform-box:fill-box;transform-origin:center;animation:eyeblink 4.8s infinite}
+.bav .e-happy,.bav .e-x,.bav .e-sleep{display:none}
+.bav .bub,.bav .zz,.bav .sp,.bav .puff{position:absolute;pointer-events:none;opacity:0}
+.bav .bub{right:-9px;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--amber);color:#2a1b00;font:700 14px/20px "Barlow SC";text-align:center;box-shadow:0 0 0 2px var(--panel)}
+.bav .zz{right:-2px;top:-6px;font:700 13px "Barlow SC";color:var(--muted)}
+.bav .sp{width:3px;height:3px;border-radius:50%;background:#ffd25a;box-shadow:0 0 5px #ffb100;left:80%;top:62%}
+.bav .puff{width:9px;height:9px;border-radius:50%;background:rgba(150,156,165,.6);left:40%;top:8%}
+@keyframes eyeblink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+/* running: hammering */
+.bav.s-running .ant{fill:var(--green);filter:drop-shadow(0 0 2.5px var(--green))}
+.bav.s-running .arm{animation:hammer .3s ease-in infinite alternate}
+.bav.s-running .rb{animation:bob .3s ease-in-out infinite alternate}
+.bav.s-running .sp{animation:spark .6s ease-out infinite}
+.bav.s-running .sp.s2{animation-delay:.2s}.bav.s-running .sp.s3{animation-delay:.4s}
+@keyframes hammer{from{transform:rotate(-55deg)}to{transform:rotate(12deg)}}
+@keyframes bob{to{transform:translateY(-.8px)}}
+@keyframes spark{0%{opacity:1;translate:0 0}100%{opacity:0;translate:var(--dx,8px) var(--dy,-10px)}}
+.bav .sp.s2{--dx:12px;--dy:-3px}.bav .sp.s3{--dx:4px;--dy:-13px}
+/* queued: looking around */
+.bav.s-queued .ant{fill:var(--blue);filter:drop-shadow(0 0 2px var(--blue))}
+.bav.s-queued .eyes{animation:look 2.4s ease-in-out infinite}
+@keyframes look{0%,100%{transform:translateX(-1.5px)}50%{transform:translateX(1.5px)}}
+/* waiting on you: hand up + question */
+.bav.s-waiting .ant{fill:var(--amber);animation:antb 1.1s steps(1) infinite}
+@keyframes antb{50%{fill:var(--lampoff)}}
+.bav.s-waiting .arm{transform:rotate(-150deg);animation:wave .7s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-165deg)}to{transform:rotate(-130deg)}}
+.bav.s-waiting .bub{opacity:1;animation:float 1.2s ease-in-out infinite alternate}
+@keyframes float{to{translate:0 -3px}}
+/* paused: asleep */
+.bav.s-paused .eyes{display:none}.bav.s-paused .e-sleep{display:inline}
+.bav.s-paused .rb{animation:breathe 3s ease-in-out infinite}
+.bav.s-paused .zz{animation:zz 2.4s ease-out infinite}
+@keyframes breathe{50%{transform:translateY(.8px)}}
+@keyframes zz{0%{opacity:0;translate:0 4px}20%{opacity:1}100%{opacity:0;translate:8px -12px;scale:1.4}}
+/* error: smoke and shaking */
+.bav.s-error .ant{fill:var(--red);filter:drop-shadow(0 0 3px var(--red))}
+.bav.s-error .eyes{display:none}.bav.s-error .e-x{display:inline}
+.bav.s-error .rb{animation:shake .35s steps(2) infinite}
+.bav.s-error .puff{animation:puff 1.8s ease-out infinite}
+@keyframes shake{50%{transform:translateX(.8px)}}
+@keyframes puff{0%{opacity:.9;scale:.6}100%{opacity:0;translate:4px -16px;scale:2.2}}
+/* done: happy */
+.bav.s-done .ant{fill:#fff}
+.bav.s-done .eyes{display:none}.bav.s-done .e-happy{display:inline}
+.bav.s-done .rb{animation:hop 4s ease-out infinite}
+@keyframes hop{0%,82%,100%{transform:none}88%{transform:translateY(-4px)}}
+.bav.s-stopped{filter:grayscale(1);opacity:.55}
+.bav.s-stopped .eyes{animation:none;opacity:.25}
+.bav.s-idle .eyes{animation:eyeblink 4.8s infinite,look 6s ease-in-out infinite}
+.bav.hop .rb{animation:hop1 .5s ease-out}
+@keyframes hop1{40%{transform:translateY(-6px)}}
+.bav.wave .arm{animation:wave .6s ease-in-out infinite alternate;transform:rotate(-150deg)}
+.env{position:fixed;z-index:50;pointer-events:none;width:20px;height:14px}
+
+/* agent cards */
+.mission-h{display:flex;align-items:baseline;gap:12px;margin:16px 0 9px}
+.mission-h:first-child{margin-top:2px}
+.mission-h b{font:600 16px "Barlow SC";min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mission-h .ln{flex:1;height:1px;background:var(--line)}
+.mission-h span{color:var(--dim);font-size:13px;white-space:nowrap}
+.tree{display:flex;flex-direction:column;gap:8px}
+.node{position:relative}
+.node.child{margin-left:calc(var(--d) * 30px)}
+.node.child::before{content:"";position:absolute;left:-17px;top:-10px;height:42px;width:13px;border-left:2px solid var(--line2);border-bottom:2px solid var(--line2);border-bottom-left-radius:9px}
+.agent{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:13px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:12px;padding:9px 12px;cursor:pointer;transition:background .15s}
+.agent:hover{background:var(--panel3)}
+.agent.s-running{border-left-color:var(--green)}
+.agent.s-waiting{border-left-color:var(--amber);background:linear-gradient(90deg,color-mix(in srgb,var(--amber) 9%,var(--panel2)),var(--panel2) 45%)}
+.agent.s-queued{border-left-color:var(--blue)}.agent.s-done{border-left-color:var(--teal)}
+.agent.s-error{border-left-color:var(--red);background:linear-gradient(90deg,color-mix(in srgb,var(--red) 9%,var(--panel2)),var(--panel2) 45%)}
+.agent.s-stopped{opacity:.6}
+.agent.enter{animation:enter .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes enter{from{opacity:0;transform:translateY(-8px) scale(.98)}}
+.agent.flash{animation:flash 1.3s ease-out}
+@keyframes flash{from{box-shadow:0 0 0 2px color-mix(in srgb,var(--amber) 60%,transparent)}}
+.a-top{display:flex;align-items:center;gap:8px;min-width:0}
+.a-name{font:600 16px "Barlow SC"}
+.a-role{color:var(--muted);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a-act{color:var(--text);opacity:.85;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.a-meta{display:flex;gap:16px;color:var(--dim);font-size:13px;margin-top:2px;flex-wrap:wrap}
+.a-meta b{color:var(--muted);font-weight:500}
+.tag{display:inline-flex;font:700 12px "Barlow SC";border:1px solid var(--line2);border-radius:5px;overflow:hidden;white-space:nowrap;background:var(--panel)}
+.tag i{width:4px}
+.tag span{padding:0 6px}
+.pill{font:600 12px "Barlow SC";padding:1px 8px;border-radius:99px;white-space:nowrap;letter-spacing:.2px}
+.p-running{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.p-waiting{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}
+.p-queued{background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)}
+.p-paused,.p-idle{background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
+.p-done{background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal)}
+.p-stopped{background:color-mix(in srgb,var(--dim) 18%,transparent);color:var(--dim)}
+.p-error{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+.chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:0 6px}
+.ctl{display:flex;gap:7px}
+.pb{all:unset;cursor:pointer;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--panel);box-shadow:0 0 0 1.5px var(--line2)}
+.pb .cap{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.pb.go .cap{background:var(--green)}.pb.hold .cap{background:#6b7484}.pb.halt .cap{background:var(--red)}.pb.bin .cap{background:#6b7484}
+.pb:hover .cap{filter:brightness(1.15)}
+.pb:active .cap{transform:translateY(1px)}
+.pb:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+
+/* decisions */
+.dec{border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--amber) 8%,var(--panel2)),var(--panel2));border-radius:12px;padding:12px;margin-bottom:10px}
+.dec.perm{border-color:color-mix(in srgb,var(--blue) 45%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--blue) 8%,var(--panel2)),var(--panel2))}
+.dec.enter{animation:enter .45s cubic-bezier(.2,1.3,.4,1)}
+.dec .who{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dec .who .bav{width:36px;height:36px;border-radius:10px}
+.dec .who b{font:600 15px "Barlow SC"}
+.dec .who small{display:block;color:var(--muted);font-size:12.5px}
+.dec .who .r{margin-left:auto;color:var(--dim);font-size:13px;align-self:flex-start}
+.dec .q{font-weight:600;font-size:15.5px;margin-bottom:6px}
+.dec .d{font-size:14px;color:var(--muted);margin-bottom:9px}
+.dec .code{font:13px/1.45 "Cascadia Mono",Consolas,monospace;background:var(--term);color:#cfe3d2;padding:8px 10px;border-radius:8px;margin-bottom:9px;white-space:pre-wrap;word-break:break-all}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.opt{background:var(--panel3);border:1px solid var(--line2);padding:5px 13px;border-radius:9px;font-weight:600}
+.opt:hover{border-color:var(--amber);color:var(--amber)}
+.opt.allow:hover{border-color:var(--green);color:var(--green)}.opt.deny:hover{border-color:var(--red);color:var(--red)}
+.own{display:flex;gap:6px}
+.field,select.field,textarea.field{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;outline:none}
+[data-theme=light] .field{background:#fff}
+.field:focus{border-color:var(--accent)}
+textarea.field{min-height:120px;resize:vertical;line-height:1.5}
+.quiet{color:var(--muted);font-size:14px}
+.calm{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;padding:4px 0}
+.calm .bav{width:38px;height:38px;border-radius:10px}
+
+/* feed */
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:99px;overflow:hidden;margin-left:auto}
+.seg button{all:unset;cursor:pointer;padding:1px 10px;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--panel3);color:var(--text)}
+.feed{max-height:430px;overflow:auto;padding:4px 16px 12px}
+.ev{display:grid;grid-template-columns:40px 14px minmax(0,1fr);gap:8px;align-items:baseline;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);font-size:14px}
+.ev:last-child{border:0}
+.ev time{color:var(--dim);font-size:12.5px}
+.ev.info .tx,.ev.chatter .tx{color:var(--muted)}
+.ev.critical .tx{color:var(--red)}
+.ev.fresh{animation:fresh 1.6s ease-out}
+@keyframes fresh{from{background:color-mix(in srgb,var(--amber) 18%,transparent)}}
+
+/* terminal */
+.term{margin-top:18px;background:var(--term);border:1px solid var(--line);border-radius:14px;overflow:hidden;font:13.5px/1.5 "Cascadia Mono","Cascadia Code",Consolas,monospace;color:#cfe3d2}
+.term header{display:flex;gap:12px;align-items:baseline;padding:10px 14px;border-bottom:1px solid #1f2630;font-family:"Barlow";color:#e9edf3}
+.term header b{font:600 16px "Barlow SC"}
+.term header span{color:#6b788c;font-size:13px}
+.term-out{height:190px;overflow:auto;padding:10px 14px;white-space:pre-wrap;word-break:break-word}
+.term-out .ti{color:#fff}.term-out .ti::before{content:"hq › ";color:var(--accent)}
+.term-out .to{color:#7f90a6;margin-bottom:6px}
+.term-in{display:flex;gap:8px;padding:9px 14px;border-top:1px solid #1f2630}
+.term-in label{color:var(--accent);font-weight:700}
+.term-in input{flex:1;background:none;border:0;outline:none;color:#fff;font:inherit}
+.term-in input::placeholder{color:#4c5869}
+
+/* drawer */
+.drawer{position:fixed;inset:0 0 0 auto;width:min(580px,100vw);background:var(--bg2);border-left:1px solid var(--line2);z-index:30;transform:translateX(102%);transition:transform .22s ease-out;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.4)}
+.drawer.show{transform:none}
+.dh{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center}
+.dh .bav{width:64px;height:64px;border-radius:16px}
+.dh h2{margin:0;font:700 23px "Barlow SC"}
+.dh .meta{color:var(--muted);font-size:14px}
+.db{flex:1;overflow:auto;padding:16px 18px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.facts div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+.facts b{display:block;font:600 19px "Barlow SC"}
+.facts span{color:var(--muted);font-size:13px}
+.dsec{font:600 16px "Barlow SC";margin:14px 0 6px}
+.mission{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;white-space:pre-wrap}
+.lg{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;padding:5px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);font-size:14px;white-space:pre-wrap;word-break:break-word}
+.lg time{color:var(--dim);font-size:12.5px;padding-top:1px}
+.lg.tool .x{font:13px "Cascadia Mono",Consolas,monospace;color:var(--muted)}
+.lg.in .x{color:var(--amber)}.lg.error .x{color:var(--red)}.lg.result .x{color:var(--teal);font-weight:600}.lg.info .x{color:var(--dim)}
+.df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
+.df input{flex:1}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(4,6,9,.6);display:none;place-items:center;z-index:40;backdrop-filter:blur(4px)}
+.scrim.show{display:grid}
+.modal{width:min(640px,94vw);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:18px;padding:24px 26px;box-shadow:var(--shadow)}
+.modal h2{margin:0 0 4px;font:700 24px "Barlow SC"}
+.modal p.lead{margin:0 0 6px;color:var(--muted)}
+.modal .hero{display:flex;gap:14px;align-items:center;margin-bottom:8px}
+.modal .hero .bav{width:56px;height:56px;border-radius:15px}
+label.l{display:block;font-weight:600;margin:14px 0 5px}
+label.l small{font-weight:400;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:22px}
+.actions .sp{flex:1}
+.check{display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer}
+.check input{margin-top:4px;accent-color:var(--accent)}
+.radio{display:flex;flex-direction:column;gap:8px}
+.radio label{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--line2);border-radius:11px;cursor:pointer;background:var(--bg)}
+[data-theme=light] .radio label{background:#fff}
+.radio label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.radio input{margin-top:4px;accent-color:var(--accent)}
+.radio small{display:block;color:var(--muted);font-size:13.5px}
+.hint{color:var(--muted);font-size:13.5px}
+.ok{color:var(--green)}.bad{color:var(--red)}
+.progress{display:flex;gap:5px;margin-bottom:18px}
+.progress i{flex:1;height:4px;border-radius:9px;background:var(--line2)}
+.progress i.on{background:var(--accent)}
+.langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.langpick button{border:1px solid var(--line2);background:var(--bg);border-radius:12px;padding:18px;font:600 20px "Barlow SC";text-align:left}
+.langpick button small{display:block;font:400 14px "Barlow";color:var(--muted)}
+.langpick button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+
+/* connectors */
+.section-t{font:600 21px "Barlow SC";margin:26px 0 3px}
+.section-t:first-child{margin-top:2px}
+.section-d{color:var(--muted);margin:0 0 12px;max-width:75ch}
+.ctable{width:100%;border-collapse:collapse}
+.ctable td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctable tr:last-child td{border-bottom:0}
+.ctable .nm{font:600 16px "Barlow SC"}
+.ctable .tg{color:var(--muted);font-size:13.5px;max-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctable .err{color:var(--red);font-size:13.5px}
+.switch{position:relative;width:40px;height:23px;border-radius:12px;background:var(--line2);border:0;padding:0;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:left .15s}
+.switch.on{background:var(--green)}.switch.on::after{left:20px}
+.catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.catalog button{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+.catalog button:hover{border-color:var(--accent)}
+.catalog b{font:600 17px "Barlow SC"}
+.catalog span{color:var(--muted);font-size:14px}
+.catalog small{color:var(--dim);font-size:12.5px;margin-top:4px}
+.tg-form{padding:4px 16px 16px;border-top:1px solid var(--line)}
+.tg-form ol{margin:10px 0;padding-left:20px;color:var(--muted)}
+.kv-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px}
+
+/* external */
+.kan{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.kan h4{margin:0 0 6px;font:600 15px "Barlow SC";color:var(--muted)}
+.kt{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 9px;margin-bottom:6px;font-size:14px}
+.banner{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--amber) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);margin-bottom:16px}
+.empty{display:flex;gap:18px;align-items:center;padding:26px 6px}
+.empty .bav{width:76px;height:76px;border-radius:20px}
+.empty h3{font:700 22px "Barlow SC";margin:0 0 4px}
+.empty p{color:var(--muted);margin:0 0 12px;max-width:52ch}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel3);border:1px solid var(--line2);padding:9px 16px;border-radius:10px;display:none;z-index:60;box-shadow:var(--shadow)}
+.view{display:none}.view.on{display:block}
+.setgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+@media (max-width:1280px){.grid{grid-template-columns:1fr}.setgrid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="bav s-idle" id="brandBot" style="--c:#f08a4b"></div><div><b>Agent HQ</b><small id="ver"></small></div></div>
+  <nav>
+    <button data-view="command" class="on"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg><span data-i="nav_command"></span></button>
+    <button data-view="decisions"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 2 L16.5 15.5 H1.5 Z" stroke-linejoin="round"/><path d="M9 7v4M9 13v.5" stroke-linecap="round"/></svg><span data-i="nav_decisions"></span><span class="badge" id="navBadge"></span></button>
+    <button data-view="connectors"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 2v4M12 2v4M4 6h10v3a5 5 0 0 1-10 0z M9 14v2.5"/></svg><span data-i="nav_connectors"></span></button>
+    <button data-view="claude"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="3" width="15" height="11" rx="2"/><path d="M5 7l2 2-2 2M9.5 11H13"/></svg><span data-i="nav_claude"></span></button>
+    <button data-view="settings"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"/><circle cx="6" cy="5" r="1.6" fill="var(--bg2)"/><circle cx="12" cy="9" r="1.6" fill="var(--bg2)"/><circle cx="8" cy="13" r="1.6" fill="var(--bg2)"/></svg><span data-i="nav_settings"></span></button>
+  </nav>
+  <div class="side-foot"><div class="st" id="stClaude"></div><div class="st" id="stTg"></div><div class="st" id="stLive"></div><button onclick="quitApp()" data-i="quit"></button></div>
+</aside>
+
+<main>
+  <div class="usage" id="usage"></div>
+  <div class="page">
+  <section class="view on" id="v-command">
+    <div class="head"><h1 data-i="nav_command"></h1><div class="sp"></div>
+      <button class="btn quiet" onclick="cmd('pause all')" data-i="pause_all"></button>
+      <button class="btn quiet danger" onclick="if(confirm(t('confirm_stop_all')))cmd('stop all')" data-i="stop_all"></button>
+      <button class="btn primary" onclick="openMission()" data-i="new_mission"></button></div>
+    <div class="stats" id="stats"></div>
+    <div class="grid">
+      <div class="card"><header><h2 data-i="agents"></h2><span class="r" id="netNote"></span></header><div class="body" id="tree"></div></div>
+      <div class="col">
+        <div class="card"><header><h2 data-i="waiting_on_you"></h2></header><div class="body" id="decs"></div></div>
+        <div class="card"><header><h2 data-i="log"></h2><div class="seg" id="seg"></div></header><div class="feed" id="feed"></div></div>
+      </div>
+    </div>
+    <div class="term"><header><b data-i="terminal"></b><span data-i="term_hint"></span></header>
+      <div class="term-out" id="termOut" aria-live="polite"></div>
+      <div class="term-in"><label for="termIn">hq ›</label><input id="termIn" autocomplete="off" spellcheck="false"></div></div>
+  </section>
+
+  <section class="view" id="v-decisions">
+    <div class="head"><h1 data-i="nav_decisions"></h1></div>
+    <div class="grid"><div class="card"><header><h2 data-i="open_now"></h2></header><div class="body" id="decs2"></div></div>
+      <div class="card"><header><h2 data-i="answered"></h2></header><div class="feed" id="decHist"></div></div></div>
+  </section>
+
+  <section class="view" id="v-connectors">
+    <div class="head"><h1 data-i="nav_connectors"></h1></div>
+    <p class="section-d" data-i="conn_intro"></p><div id="connPage"></div>
+  </section>
+
+  <section class="view" id="v-claude">
+    <div class="head"><h1 data-i="nav_claude"></h1></div><p class="section-d" data-i="claude_intro"></p>
+    <div id="extBanner"></div>
+    <div class="grid"><div id="extTeams"></div>
+      <div class="col"><div class="card"><header><h2 data-i="sessions"></h2></header><div class="feed" id="extSess"></div></div>
+      <div class="card"><header><h2 data-i="team_msgs"></h2></header><div class="feed" id="extMsgs"></div></div></div></div>
+  </section>
+
+  <section class="view" id="v-settings">
+    <div class="head"><h1 data-i="nav_settings"></h1><div class="sp"></div><button class="btn quiet" onclick="openWizard()" data-i="run_setup"></button><button class="btn primary" onclick="saveSettings()" data-i="save"></button></div>
+    <div class="setgrid" id="settingsForm"></div>
+  </section>
+  </div>
+</main>
+</div>
+
+<div class="drawer" id="drawer" role="dialog"><div class="dh" id="dh"></div><div class="db" id="db"></div>
+  <div class="df"><input class="field" id="drMsg" autocomplete="off"><button class="btn primary" onclick="sendDrawerMsg()" data-i="send"></button></div></div>
+
+<div class="scrim" id="missionModal"><div class="modal" role="dialog" aria-modal="true">
+  <div class="hero"><div class="bav wave s-idle" id="mBot" style="--c:#f08a4b"></div><div><h2 data-i="new_mission"></h2><p class="lead" data-i="mission_lead"></p></div></div>
+  <label class="l" for="mText" data-i="mission_q"></label><textarea class="field" id="mText"></textarea>
+  <div class="two"><div><label class="l" for="mName" data-i="lead_name"></label><input class="field" id="mName"></div>
+  <div><label class="l" for="mModel" data-i="model"></label><select class="field" id="mModel"><option value="" data-i="model_default"></option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></div></div>
+  <label class="l" for="mCwd"><span data-i="folder"></span> <small data-i="folder_hint"></small></label><input class="field" id="mCwd" spellcheck="false">
+  <div id="mConns"></div>
+  <div class="actions"><button class="btn quiet" onclick="hide('missionModal')" data-i="cancel"></button><button class="btn primary" onclick="launchMission()" data-i="start_mission"></button></div>
+</div></div>
+<div class="scrim" id="connModal"><div class="modal" role="dialog" aria-modal="true" id="connBody"></div></div>
+<div class="scrim" id="wizard"><div class="modal" role="dialog" aria-modal="true" id="wizBody"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const I18N={
+en:{nav_command:"Command",nav_decisions:"Decisions",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Settings",quit:"Quit Agent HQ",
+ pause_all:"Pause all",stop_all:"Stop all",new_mission:"New mission",agents:"Agents",waiting_on_you:"Waiting on you",log:"Log",
+ terminal:"Master terminal",term_hint:"Type a mission to start one. @name sends a message. help lists all commands.",term_ph:"Describe what you want done",
+ st_running:"Running",st_waiting:"Waiting on you",st_agents:"Agents",st_spent:"Spent",st_done:"Done",of:"of",
+ s_queued:"Queued",s_running:"Running",s_waiting:"Needs you",s_paused:"Paused",s_idle:"Idle",s_done:"Done",s_stopped:"Stopped",s_error:"Failed",
+ empty_t:"No agents yet",empty_d:"Start a mission. The lead agent splits the work and creates its own helpers when that's faster.",
+ no_dec:"Nothing to decide right now.",own_ph:"Or write your own answer",send:"Send",permission:"wants permission",question:"has a question",
+ f_all:"All",f_updates:"Updates",f_decisions:"Decisions",f_critical:"Critical",open_now:"Open now",answered:"Answered",via:"via",expired:"No longer needed",
+ usage:"5-hour window",resets_in:"Resets in",at:"at",this_week:"This week",no_window:"No window open. Your next message to Claude starts one.",per_min:"per minute",busiest:"Compared with your busiest window so far",
+ turns:"Turns",tools:"Tool calls",tokens:"Tokens",cost:"Cost",mission_t:"Mission",activity:"Activity",msg_ph:"Message this agent",
+ pause:"Pause",resume:"Resume",stop:"Stop",del:"Remove",close:"Close",parent:"reports to",folder_t:"Folder",
+ confirm_stop_all:"Stop every agent? Stopped agents can't be resumed.",confirm_quit:"Quit Agent HQ? Running agents are paused and continue when you start it again.",
+ st_claude_ok:"Claude Code found",st_claude_no:"Claude Code not found",st_tg_off:"Telegram not set up",st_tg_link:"Send /start to your bot",st_tg_err:"Telegram error",st_tg_ok:"Telegram",st_live:"Running on this PC",st_off:"Agent HQ is not responding",
+ mission_lead:"One lead agent takes this on. It can create helpers and asks you when something needs a decision.",mission_q:"What should be done?",
+ lead_name:"Name of the lead agent",model:"Model",model_default:"Claude Code default",folder:"Working folder",folder_hint:"Leave empty for a new folder in your workspace",
+ conns_for_mission:"Connectors this mission may use",cancel:"Cancel",start_mission:"Start mission",mission_started:"Mission started",
+ conn_intro:"Connectors give agents access to other services and programs. Agents only use the connectors you switch on here.",
+ messaging:"Messaging",messaging_d:"Where Agent HQ sends updates, decisions and critical alerts.",tg_not:"Not set up",tg_waiting:"Bot saved. Send /start to it in Telegram to link your chat.",tg_linked:"Linked",set_up:"Set up",edit:"Edit",
+ tg_steps:"<li>In Telegram, open <b>@BotFather</b>, send <b>/newbot</b> and copy the token.</li><li>Paste the token below and save.</li><li>Send <b>/start</b> to your new bot. Your chat links automatically.</li>",
+ tg_own:"Use a bot that no other app is using.",bot_token:"Bot token",chat_id:"Chat ID",chat_auto:"filled in after /start",send_these:"Send these messages",
+ n_updates_loud:"Updates",n_decisions:"Decisions, with answer buttons",n_critical:"Critical alerts",n_chatter:"Messages between agents",n_silent:"Send updates without sound",
+ save:"Save",send_test:"Send test message",for_agents:"Tools for agents",for_agents_d:"Every connector that's switched on is available to new missions. Agents ask you first for connectors marked “Ask first”.",
+ none_yet:"No connectors yet. Add one below.",web_service:"Web service",local_program:"Program on this PC",tools_n:"tools",ask_first:"Ask first",not_tested:"Not tested yet",test:"Test",testing:"Testing…",remove:"Remove",works:"Works",
+ add_conn:"Add a connector",add_conn_d:"Pick a service. You can change everything afterwards.",custom:"Custom connector",custom_d:"Any MCP server: a web address or a program to run.",needs:"Needs",
+ from_cc:"Also available from Claude Code",from_cc_d:"These are set up in Claude Code itself. Agents load them automatically, because they run on your Claude Code setup.",none_cc:"None found in your Claude Code settings.",
+ c_name:"Name",c_type:"Type",c_url:"Web address",c_cmd:"Program",c_args:"Arguments",c_args_h:"one per line",c_env:"Environment variables",c_headers:"Headers",c_key:"Name",c_val:"Value",c_add:"Add",c_more:"Advanced",
+ c_ask:"Ask me before agents use this connector",c_docs:"Documentation",c_save:"Save connector",c_saved:"Connector saved",
+ claude_intro:"Your own Claude Code sessions and agent teams, outside Agent HQ. Read-only.",teams_off:"Agent teams are switched off in Claude Code. Turn them on to use teams in your own sessions.",turn_on:"Turn on",
+ no_teams:"No agent teams running in Claude Code right now.",no_sessions:"No sessions in the last 48 hours.",sessions:"Recent sessions",team_msgs:"Team messages",todo:"To do",doing:"In progress",done:"Done",
+ g_general:"General",g_claude:"Claude Code",g_agents:"Agents",g_usage:"Token usage",language:"Language",theme:"Appearance",light:"Light",dark:"Dark",workspace:"Workspace folder",autostart:"Start Agent HQ with Windows, in the background",
+ claude_path:"Claude Code program",auto_find:"Leave empty to find it automatically",found:"Found",
+ perm:"What agents may do without asking",perm_ask:"Ask me for every change",perm_ask_d:"Every file edit and command waits for your approval.",
+ perm_edits:"Edit files, ask for commands",perm_edits_d:"Agents edit files in their mission folder. Commands and other tools ask first. Recommended.",perm_full:"Everything",perm_full_d:"Agents never ask. Only use this for work you'd trust anyone with.",
+ max_agents:"Most agents at once",max_running:"Most working at the same time",max_depth:"How deep helpers may go",max_turns:"Turns before an agent pauses itself",
+ budget:"Tokens per 5-hour window",budget_d:"Leave at 0 to compare with your busiest window. Anthropic doesn't publish exact plan limits, so this is read from your local Claude Code logs.",saved:"Saved",run_setup:"Run setup again",
+ w_hello:"Welcome to Agent HQ",w_lang:"Which language do you want?",w_claude:"Find Claude Code",w_claude_d:"Agents run on your own Claude Code login and subscription. No API key needed.",
+ w_found:"Found Claude Code at",w_missing:"Claude Code isn't installed or isn't on your PATH. Install it, run claude once to log in, then test again.",
+ w_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Type your first mission in the master terminal, or use New mission.",
+ next:"Next",back:"Back",skip:"Skip",finish:"Open Agent HQ",answer_sent:"Answer sent",now:"now"},
+nl:{nav_command:"Commando",nav_decisions:"Beslissingen",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Instellingen",quit:"Agent HQ afsluiten",
+ pause_all:"Alles pauzeren",stop_all:"Alles stoppen",new_mission:"Nieuwe missie",agents:"Agents",waiting_on_you:"Wacht op jou",log:"Logboek",
+ terminal:"Master terminal",term_hint:"Typ een missie om te starten. @naam stuurt een bericht. help toont alle commando's.",term_ph:"Beschrijf wat er moet gebeuren",
+ st_running:"Bezig",st_waiting:"Wacht op jou",st_agents:"Agents",st_spent:"Uitgegeven",st_done:"Klaar",of:"van",
+ s_queued:"In de rij",s_running:"Bezig",s_waiting:"Wacht op jou",s_paused:"Gepauzeerd",s_idle:"Wacht",s_done:"Klaar",s_stopped:"Gestopt",s_error:"Mislukt",
+ empty_t:"Nog geen agents",empty_d:"Start een missie. De hoofdagent verdeelt het werk en maakt zelf helpers aan als dat sneller is.",
+ no_dec:"Er valt nu niets te beslissen.",own_ph:"Of schrijf je eigen antwoord",send:"Stuur",permission:"vraagt toestemming",question:"heeft een vraag",
+ f_all:"Alles",f_updates:"Updates",f_decisions:"Beslissingen",f_critical:"Kritiek",open_now:"Nu open",answered:"Beantwoord",via:"via",expired:"Niet meer nodig",
+ usage:"5-uursvenster",resets_in:"Reset over",at:"om",this_week:"Deze week",no_window:"Geen venster open. Je volgende bericht aan Claude start er een.",per_min:"per minuut",busiest:"Vergeleken met je drukste venster tot nu toe",
+ turns:"Beurten",tools:"Toolaanroepen",tokens:"Tokens",cost:"Kosten",mission_t:"Missie",activity:"Activiteit",msg_ph:"Stuur deze agent een bericht",
+ pause:"Pauzeer",resume:"Hervat",stop:"Stop",del:"Verwijder",close:"Sluiten",parent:"rapporteert aan",folder_t:"Map",
+ confirm_stop_all:"Alle agents stoppen? Gestopte agents kun je niet hervatten.",confirm_quit:"Agent HQ afsluiten? Lopende agents pauzeren en gaan verder als je het weer start.",
+ st_claude_ok:"Claude Code gevonden",st_claude_no:"Claude Code niet gevonden",st_tg_off:"Telegram niet ingesteld",st_tg_link:"Stuur /start naar je bot",st_tg_err:"Telegram-fout",st_tg_ok:"Telegram",st_live:"Draait op deze pc",st_off:"Agent HQ reageert niet",
+ mission_lead:"Eén hoofdagent pakt dit op. Die kan helpers aanmaken en vraagt het je als er iets beslist moet worden.",mission_q:"Wat moet er gebeuren?",
+ lead_name:"Naam van de hoofdagent",model:"Model",model_default:"Standaard van Claude Code",folder:"Werkmap",folder_hint:"Leeg laten voor een nieuwe map in je werkmap",
+ conns_for_mission:"Connectors die deze missie mag gebruiken",cancel:"Annuleren",start_mission:"Missie starten",mission_started:"Missie gestart",
+ conn_intro:"Met connectors krijgen agents toegang tot andere diensten en programma's. Agents gebruiken alleen de connectors die je hier aanzet.",
+ messaging:"Berichten",messaging_d:"Waar Agent HQ updates, beslissingen en kritieke meldingen naartoe stuurt.",tg_not:"Niet ingesteld",tg_waiting:"Bot opgeslagen. Stuur /start naar je bot in Telegram om je chat te koppelen.",tg_linked:"Gekoppeld",set_up:"Instellen",edit:"Wijzigen",
+ tg_steps:"<li>Open in Telegram <b>@BotFather</b>, stuur <b>/newbot</b> en kopieer de token.</li><li>Plak de token hieronder en sla op.</li><li>Stuur <b>/start</b> naar je nieuwe bot. Je chat wordt automatisch gekoppeld.</li>",
+ tg_own:"Gebruik een bot die geen andere app gebruikt.",bot_token:"Bot token",chat_id:"Chat ID",chat_auto:"wordt ingevuld na /start",send_these:"Deze berichten sturen",
+ n_updates_loud:"Updates",n_decisions:"Beslissingen, met antwoordknoppen",n_critical:"Kritieke meldingen",n_chatter:"Berichten tussen agents",n_silent:"Updates zonder geluid sturen",
+ save:"Opslaan",send_test:"Testbericht sturen",for_agents:"Tools voor agents",for_agents_d:"Elke connector die aan staat is beschikbaar voor nieuwe missies. Bij connectors met “Eerst vragen” vragen agents het je eerst.",
+ none_yet:"Nog geen connectors. Voeg er hieronder een toe.",web_service:"Webdienst",local_program:"Programma op deze pc",tools_n:"tools",ask_first:"Eerst vragen",not_tested:"Nog niet getest",test:"Testen",testing:"Bezig met testen…",remove:"Verwijderen",works:"Werkt",
+ add_conn:"Connector toevoegen",add_conn_d:"Kies een dienst. Je kunt alles achteraf aanpassen.",custom:"Eigen connector",custom_d:"Elke MCP-server: een webadres of een programma.",needs:"Nodig",
+ from_cc:"Ook beschikbaar via Claude Code",from_cc_d:"Deze zijn in Claude Code zelf ingesteld. Agents laden ze automatisch, omdat ze op jouw Claude Code draaien.",none_cc:"Niets gevonden in je Claude Code-instellingen.",
+ c_name:"Naam",c_type:"Soort",c_url:"Webadres",c_cmd:"Programma",c_args:"Argumenten",c_args_h:"één per regel",c_env:"Omgevingsvariabelen",c_headers:"Headers",c_key:"Naam",c_val:"Waarde",c_add:"Toevoegen",c_more:"Geavanceerd",
+ c_ask:"Vraag het mij voordat agents deze connector gebruiken",c_docs:"Documentatie",c_save:"Connector opslaan",c_saved:"Connector opgeslagen",
+ claude_intro:"Je eigen Claude Code-sessies en agent teams, buiten Agent HQ. Alleen bekijken.",teams_off:"Agent teams staan uit in Claude Code. Zet ze aan om teams in je eigen sessies te gebruiken.",turn_on:"Aanzetten",
+ no_teams:"Er draaien nu geen agent teams in Claude Code.",no_sessions:"Geen sessies in de laatste 48 uur.",sessions:"Recente sessies",team_msgs:"Teamberichten",todo:"Te doen",doing:"Bezig",done:"Klaar",
+ g_general:"Algemeen",g_claude:"Claude Code",g_agents:"Agents",g_usage:"Tokenverbruik",language:"Taal",theme:"Weergave",light:"Licht",dark:"Donker",workspace:"Werkmap",autostart:"Agent HQ starten met Windows, op de achtergrond",
+ claude_path:"Claude Code-programma",auto_find:"Leeg laten om het automatisch te vinden",found:"Gevonden",
+ perm:"Wat agents mogen zonder te vragen",perm_ask:"Vraag mij bij elke wijziging",perm_ask_d:"Elke bestandswijziging en elk commando wacht op jouw goedkeuring.",
+ perm_edits:"Bestanden bewerken, commando's vragen",perm_edits_d:"Agents bewerken bestanden in hun missiemap. Commando's en andere tools vragen eerst. Aanbevolen.",perm_full:"Alles",perm_full_d:"Agents vragen nooit iets. Alleen voor werk dat je iedereen zou toevertrouwen.",
+ max_agents:"Maximaal aantal agents",max_running:"Maximaal tegelijk aan het werk",max_depth:"Hoe diep helpers mogen gaan",max_turns:"Beurten voordat een agent zichzelf pauzeert",
+ budget:"Tokens per 5-uursvenster",budget_d:"Laat op 0 om te vergelijken met je drukste venster. Anthropic publiceert geen exacte limieten, dus dit komt uit je lokale Claude Code-logs.",saved:"Opgeslagen",run_setup:"Setup opnieuw doen",
+ w_hello:"Welkom bij Agent HQ",w_lang:"Welke taal wil je?",w_claude:"Claude Code zoeken",w_claude_d:"Agents draaien op je eigen Claude Code-login en abonnement. Geen API-key nodig.",
+ w_found:"Claude Code gevonden in",w_missing:"Claude Code is niet geïnstalleerd of staat niet in je PATH. Installeer het, start claude één keer om in te loggen en test opnieuw.",
+ w_agents:"Hoeveel mogen agents zelf doen?",w_tg:"Berichten op je telefoon",w_tg_d:"Optioneel. Je kunt dit ook later instellen bij Connectors.",w_ready:"Klaar",w_ready_d:"Typ je eerste missie in de master terminal, of gebruik Nieuwe missie.",
+ next:"Volgende",back:"Terug",skip:"Overslaan",finish:"Agent HQ openen",answer_sent:"Antwoord verstuurd",now:"nu"}
+};
+const IC={go:'<svg width="9" height="9" viewBox="0 0 10 10" fill="#fff"><path d="M2.5 1.2v7.6L8.8 5z"/></svg>',hold:'<svg width="8" height="9" viewBox="0 0 8 10" fill="#fff"><rect x=".5" y="1" width="2.4" height="8"/><rect x="5.1" y="1" width="2.4" height="8"/></svg>',
+ halt:'<svg width="8" height="8" viewBox="0 0 8 8" fill="#fff"><rect width="8" height="8" rx="1"/></svg>',bin:'<svg width="9" height="9" viewBox="0 0 10 10" stroke="#fff" stroke-width="1.6"><path d="M2 2l6 6M8 2L2 8"/></svg>'};
+/* the mascot: one small robot per agent */
+const BOT=`<svg viewBox="0 0 40 40" aria-hidden="true"><g class="rb">
+ <line x1="20" y1="6" x2="20" y2="10.5" stroke="#1b1f26" stroke-width="1.5"/><circle class="ant" cx="20" cy="5" r="2.8" stroke="#1b1f26" stroke-width=".9"/>
+ <rect x="12.5" y="25" width="15" height="11" rx="3" fill="var(--c)" stroke="#1b1f26" stroke-width="1.4"/>
+ <rect x="16.5" y="28.5" width="7" height="2.2" rx="1" fill="rgba(255,255,255,.55)"/>
+ <path d="M12.5 28.5 L9 33" stroke="#1b1f26" stroke-width="2.2" stroke-linecap="round"/>
+ <g class="arm"><path d="M27.5 28.5 L31.5 33" stroke="#1b1f26" stroke-width="2.2" stroke-linecap="round"/><path d="M31.5 33 L34.5 30 M33 28.5 L36 31.5" stroke="#8d97aa" stroke-width="1.8" stroke-linecap="round"/></g>
+ <rect x="9.5" y="10.5" width="21" height="15" rx="4.5" fill="#eef1ee" stroke="#1b1f26" stroke-width="1.4"/>
+ <rect x="12.5" y="13.5" width="15" height="8.5" rx="2.6" fill="#1b1f26"/>
+ <g class="eyes"><rect x="15" y="16" width="2.6" height="3.2" rx=".9" fill="#8ff0a8"/><rect x="22.4" y="16" width="2.6" height="3.2" rx=".9" fill="#8ff0a8"/></g>
+ <g class="e-happy" fill="none" stroke="#8ff0a8" stroke-width="1.3" stroke-linecap="round"><path d="M14.8 18.6 q1.5 -2.2 3 0"/><path d="M22.2 18.6 q1.5 -2.2 3 0"/></g>
+ <g class="e-sleep" stroke="#8ff0a8" stroke-width="1.2" stroke-linecap="round"><path d="M14.8 18 h3"/><path d="M22.2 18 h3"/></g>
+ <g class="e-x" stroke="#ff8a90" stroke-width="1.2" stroke-linecap="round"><path d="M15 16.3 l2.6 2.6 M17.6 16.3 l-2.6 2.6"/><path d="M22.4 16.3 l2.6 2.6 M25 16.3 l-2.6 2.6"/></g>
+</g></svg><span class="bub">?</span><span class="zz">z</span><i class="sp"></i><i class="sp s2"></i><i class="sp s3"></i><i class="puff"></i>`;
+const SEEN={ev:{},st:{},new:{},boot:false};
+let LANG='en',S=null,view='command',feedFilter='all',drawerId=null,drLog=null,termHist=[],termPos=0,CONN=null,tgOpen=false,lastEv=null;
+const $=id=>document.getElementById(id);
+const t=k=>(I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTok=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e3?Math.round(n/1e3)+'k':String(n||0);
+const ts=x=>x&&!String(x).startsWith('0001')?new Date(x).getTime():0;
+function ago(x){const d=(Date.now()-ts(x))/1000;if(!ts(x))return'';if(d<45)return t('now');if(d<3600)return Math.round(d/60)+' min';if(d<86400)return Math.floor(d/3600)+' '+(LANG==='nl'?'uur':'h');return Math.floor(d/86400)+' d'}
+function dur(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`}
+function durWords(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h} h ${m} min`:`${m} min`}
+function hm(x){return new Date(x).toLocaleTimeString(LANG==='nl'?'nl-NL':'en-GB',{hour:'2-digit',minute:'2-digit'})}
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(e._h);e._h=setTimeout(()=>e.style.display='none',3000)}
+function show(id){$(id).classList.add('show')} function hide(id){$(id).classList.remove('show')}
+function setHTML(el,html){if(typeof el==='string')el=$(el);if(el._h!==html){el._h=html;el.innerHTML=html}}
+async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error((await r.text()).trim());return r.json()}
+function resetCache(){document.querySelectorAll('*').forEach(e=>{if(e._h!==undefined)e._h=undefined})}
+function applyI18n(){document.documentElement.lang=LANG;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('termIn').placeholder=t('term_ph');$('drMsg').placeholder=t('msg_ph');resetCache();if(S)render();if(view==='settings')renderSettings();if(view==='connectors')loadConnectors()}
+function setTheme(th){document.documentElement.dataset.theme=th==='light'?'light':'dark'}
+const bot=(a,cls='')=>`<div class="bav s-${a.status} ${cls}" data-agent="${a.id}" style="--c:${a.color}">${BOT}</div>`;
+document.querySelectorAll('.bav').forEach(e=>e.innerHTML=BOT);
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.view));
+function go(v){view=v;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));if(v==='settings')renderSettings();if(v==='connectors')loadConnectors()}
+
+async function refresh(){
+  try{S=await api('/api/state');['agents','decisions','events','term','recentDecisions','connectors'].forEach(k=>{if(!S[k])S[k]=[]});
+    if(!location.hash.includes('theme='))setTheme(S.theme);
+    if(!S.setupDone&&!$('wizard').classList.contains('show'))openWizard();
+    if(S.lang&&S.lang!==LANG){LANG=S.lang;applyI18n()}
+    render();SEEN.boot=true;
+  }catch(e){console.error(e);setHTML('stLive',`<span class="lamp r"></span>${t('st_off')}`)}
+}
+function render(){
+  $('ver').textContent='Version '+S.version+(S.demo?' (demo)':'');
+  const brand=$('brandBot');const busy=S.stats.running>0;brand.className='bav '+(S.decisions.length?'s-waiting':busy?'s-running':'s-idle');
+  setHTML('stClaude',`<span class="lamp ${S.claudeFound?'g':'r'}"></span>${t(S.claudeFound?'st_claude_ok':'st_claude_no')}`);
+  const tg=S.telegram;let l='',txt=t('st_tg_off');
+  if(tg.configured&&tg.lastError){l='r';txt=t('st_tg_err')}else if(tg.linked){l='g';txt=t('st_tg_ok')+(tg.botName?' @'+tg.botName:'')}else if(tg.configured){l='a';txt=t('st_tg_link')}
+  setHTML('stTg',`<span class="lamp ${l}"></span>${esc(txt)}`);setHTML('stLive',`<span class="lamp g"></span>${t('st_live')}`);
+  const nd=S.decisions.length;$('navBadge').textContent=nd||'';document.title=(nd?`(${nd}) `:'')+'Agent HQ';
+  renderUsage();renderStats();renderTree();renderDecs('decs',S.decisions);renderDecs('decs2',S.decisions);renderHistory();renderFeed();renderTerm();renderExternal();
+  if(drawerId)renderDrawer();tick();flyMessages();
+}
+function renderUsage(){
+  const u=S.usage,N=30;const lit=u.percent>0?Math.min(N,Math.round(u.percent/100*N)):0;const boot=!SEEN.meter&&u.ready&&u.blockActive;if(boot)SEEN.meter=1;
+  let segs='';for(let i=0;i<N;i++){const p=i/N,c=p<.6?'var(--green)':p<.85?'var(--amber)':'var(--red)';segs+=i<lit?`<i class="on" style="background:${c};color:${c};animation-delay:${i*30}ms"></i>`:'<i></i>'}
+  let h=`<span class="lbl">${t('usage')}</span>`;
+  if(!u.ready)h+='<span class="sub">…</span>';
+  else if(!u.blockActive)h+=`<div class="bargraph">${segs}</div><span class="sub">${t('no_window')}</span>`;
+  else h+=`<div class="bargraph${boot?' boot':''}" role="meter" aria-valuenow="${Math.max(0,u.percent)}" title="${u.budgetAuto?esc(t('busiest')):''}">${segs}</div>
+   <span class="val num">${fmtTok(u.blockTokens)}${u.budget?` <small>${t('of')} ${fmtTok(u.budget)}${u.percent>=0?`, ${u.percent}%`:''}</small>`:''}</span>
+   <span class="reset sub"><span class="lamp ${u.percent>=85?'r':u.percent>=60?'a':'g'}"></span>${t('resets_in')} <b class="num" data-until="${esc(u.resetAt)}"></b> ${t('at')} ${hm(u.resetAt)}</span>
+   <span class="sub">${fmtTok(u.burnPerMin)} ${t('per_min')}</span>`;
+  h+=`<span class="sub">${t('this_week')} <b>${fmtTok(u.weekTokens)}</b></span>`;
+  setHTML('usage',h);
+}
+function renderStats(){
+  const s=S.stats,w=S.decisions.length;
+  const it=[['st_running',s.running,s.running?'g':''],['st_waiting',w,w?'a blink':''],['st_agents',`${s.live} <small>${t('of')} ${S.limits.maxAgents}</small>`,''],['st_spent','$'+(s.cost||0).toFixed(2),''],['st_done',s.done,s.done?'w':'']];
+  setHTML('stats',it.map(([k,n,l],i)=>`<div class="stat ${i===1&&w?'alert':''}"><div class="l"><span class="lamp ${l}"></span>${t(k)}</div><div class="n num">${n}</div></div>`).join(''));
+}
+function tags(){const m={},cnt={};let root=0;S.agents.forEach(a=>{if(!a.parentId||!m[a.parentId]){root++;m[a.id]='A'+root}else{cnt[a.parentId]=(cnt[a.parentId]||0)+1;m[a.id]=m[a.parentId]+'.'+cnt[a.parentId]}});return m}
+const tagHTML=(a,tg)=>`<span class="tag"><i style="background:${a.color}"></i><span>${tg[a.id]}</span></span>`;
+function ctlHTML(a){const res=a.status==='paused'||a.status==='error',live=!['stopped','done'].includes(a.status);let h='';
+  if(res)h+=`<button class="pb go" title="${t('resume')}" aria-label="${t('resume')}" onclick="act('${a.id}','resume')"><span class="cap">${IC.go}</span></button>`;
+  else if(live)h+=`<button class="pb hold" title="${t('pause')}" aria-label="${t('pause')}" onclick="act('${a.id}','pause')"><span class="cap">${IC.hold}</span></button>`;
+  h+=a.status!=='stopped'?`<button class="pb halt" title="${t('stop')}" aria-label="${t('stop')}" onclick="act('${a.id}','stop')"><span class="cap">${IC.halt}</span></button>`:`<button class="pb bin" title="${t('del')}" aria-label="${t('del')}" onclick="act('${a.id}','delete')"><span class="cap">${IC.bin}</span></button>`;return h}
+function renderTree(){
+  const ag=S.agents;$('netNote').textContent=ag.length?`${S.stats.running} ${t('s_running').toLowerCase()}, ${ag.length} ${t('agents').toLowerCase()}`:'';
+  if(!ag.length){setHTML('tree',`<div class="empty"><div class="bav wave s-idle" style="--c:#f08a4b">${BOT}</div><div><h3>${t('empty_t')}</h3><p>${t('empty_d')}</p><button class="btn primary" onclick="openMission()">${t('new_mission')}</button></div></div>`);return}
+  const tg=tags();let h='';
+  ag.forEach(a=>{
+    if(!SEEN.new[a.id]){SEEN.new[a.id]=SEEN.boot?Date.now():1}
+    const prev=SEEN.st[a.id];if(prev&&prev!==a.status)SEEN.st[a.id+'_t']=Date.now();SEEN.st[a.id]=a.status;
+    const cls=(Date.now()-SEEN.new[a.id]<700?' enter':'')+(Date.now()-(SEEN.st[a.id+'_t']||0)<1300?' flash':'');
+    if(a.depth===0)h+=`<div class="mission-h"><b>${esc(a.mission)}</b><span class="ln"></span><span data-ago="${esc(a.created)}"></span></div>`;
+    h+=`<div class="node ${a.depth?'child':''}" style="--d:${a.depth}"><div class="agent s-${a.status}${cls}" onclick="openDrawer('${a.id}')" tabindex="0" onkeydown="if(event.key==='Enter')openDrawer('${a.id}')">
+     ${bot(a)}
+     <div style="min-width:0"><div class="a-top">${tagHTML(a,tg)}<span class="a-name">${esc(a.name)}</span><span class="pill p-${a.status}">${t('s_'+a.status)}</span><span class="a-role">${esc(a.role)}${a.model?', '+esc(a.model):''}</span></div>
+     <div class="a-act">${esc(a.activity&&a.activity!=='…'?a.activity:'')}</div>
+     <div class="a-meta num"><span><b>${a.turns}</b> ${t('turns').toLowerCase()}</span><span><b>${a.toolCalls}</b> ${t('tools').toLowerCase()}</span><span><b>${fmtTok(a.inTok+a.outTok)}</b> ${t('tokens').toLowerCase()}</span><span><b>$${(a.cost||0).toFixed(2)}</b></span>${['running','waiting'].includes(a.status)?`<span data-since="${esc(a.turnStart)}"></span>`:''}</div></div>
+     <div class="ctl" onclick="event.stopPropagation()">${ctlHTML(a)}</div></div></div>`});
+  setHTML('tree',`<div class="tree">${h}</div>`);
+}
+function decHTML(d){const a=S.agents.find(x=>x.id===d.agentId)||{id:'',status:'waiting',color:'#888',name:d.agentName},perm=d.kind==='permission';
+  return `<div class="dec ${perm?'perm':''}${SEEN.boot&&!SEEN.ev['d'+d.id]?' enter':''}"><div class="who">${bot({...a,status:'waiting'})}<div><b>${esc(d.agentName)}</b><small>${t(perm?'permission':'question')}</small></div><span class="r" data-ago="${esc(d.created)}"></span></div>
+   <div class="q">${esc(d.question)}</div>${d.detail?(perm?`<div class="code">${esc(d.detail)}</div>`:`<div class="d">${esc(d.detail)}</div>`):''}
+   <div class="opts">${d.options.map((o,i)=>`<button class="opt ${perm?(i===0?'allow':'deny'):''}" data-d="${d.id}" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+   <div class="own"><input class="field" id="own-${d.id}" placeholder="${t('own_ph')}" onkeydown="if(event.key==='Enter')answer('${d.id}',this.value)"><button class="btn" onclick="answer('${d.id}',$('own-${d.id}').value)">${t('send')}</button></div></div>`}
+document.addEventListener('click',e=>{const b=e.target.closest('.opt[data-d]');if(b)answer(b.dataset.d,b.dataset.o)});
+function renderDecs(el,list){const calm=`<div class="calm"><div class="bav s-done" style="--c:#38c172">${BOT}</div>${t('no_dec')}</div>`;setHTML(el,list.length?list.map(decHTML).join(''):calm);list.forEach(d=>SEEN.ev['d'+d.id]=1)}
+function renderHistory(){setHTML('decHist',(S.recentDecisions||[]).map(d=>`<div class="ev"><time data-ago="${esc(d.answeredAt||d.created)}"></time><span class="lamp ${d.status==='answered'?'g':''}"></span><span><b>${esc(d.agentName)}</b>: ${esc(d.question)}<br><span class="hint">${d.status==='answered'?`${esc(d.answer)}, ${t('via')} ${esc(d.via)}`:t('expired')}</span></span></div>`).join('')||'<div class="quiet">—</div>')}
+const lvLamp={update:'g',decision:'a',critical:'r',info:'',chatter:'b'};
+function renderFeed(){
+  setHTML('seg',[['all','f_all'],['update','f_updates'],['decision','f_decisions'],['critical','f_critical']].map(([k,l])=>`<button class="${feedFilter===k?'on':''}" onclick="feedFilter='${k}';render()">${t(l)}</button>`).join(''));
+  const ev=S.events.filter(e=>feedFilter==='all'||e.level===feedFilter).slice(0,100);
+  const fresh=id=>{if(!SEEN.ev[id])SEEN.ev[id]=SEEN.boot?Date.now():1;return Date.now()-SEEN.ev[id]<1500?' fresh':''};
+  setHTML('feed',ev.map(e=>`<div class="ev ${e.level}${fresh(e.id)}"><time class="num">${hm(e.time)}</time><span class="lamp ${lvLamp[e.level]}"></span><span class="tx">${esc(e.text)}</span></div>`).join('')||'<div class="quiet">—</div>');
+}
+function renderTerm(){const out=$('termOut');const html=(S.term||[]).map(l=>`<div class="${l.k==='in'?'ti':'to'}">${esc(l.x)}</div>`).join('');
+  if(out._h!==html){const b=out.scrollHeight-out.scrollTop-out.clientHeight<30;out._h=html;out.innerHTML=html;if(b||!out._i){out.scrollTop=out.scrollHeight;out._i=1}}}
+function renderExternal(){const ex=S.external||{};
+  setHTML('extBanner',ex.teamsEnabled?'':`<div class="banner"><span style="flex:1">${t('teams_off')}</span><button class="btn" onclick="enableTeams()">${t('turn_on')}</button></div>`);
+  setHTML('extTeams',(ex.teams||[]).length?ex.teams.map(tm=>{const col=(k,l)=>{const it=(tm.tasks||[]).filter(x=>k==='pending'?!['in_progress','completed'].includes(x.status):x.status===k);return `<div><h4>${l} <span class="num">${it.length}</span></h4>${it.map(x=>`<div class="kt">${esc(x.subject)}${x.owner?`<div class="hint">${esc(x.owner)}</div>`:''}</div>`).join('')}</div>`};
+    return `<div class="card" style="margin-bottom:18px"><header><span class="lamp ${tm.active?'g':''}"></span><h2>${esc(tm.name.replace(/^session-/,''))}</h2><span class="r num">${tm.done}/${tm.total}</span></header><div class="body">
+      <div style="display:flex;flex-wrap:wrap;gap:6px 18px">${(tm.members||[]).map(m=>`<span><span class="lamp ${m.status==='busy'?'g':''}"></span> <b>${esc(m.name)}</b>${m.currentTask?' <span class="hint">'+esc(m.currentTask)+'</span>':''}</span>`).join('')}</div>
+      <div class="kan">${col('pending',t('todo'))}${col('in_progress',t('doing'))}${col('completed',t('done'))}</div></div></div>`}).join(''):`<div class="card"><div class="body quiet">${t('no_teams')}</div></div>`);
+  setHTML('extSess',(ex.sessions||[]).map(s=>`<div class="ev"><time data-ago="${esc(s.updated)}"></time><span class="lamp ${s.active?'g':''}"></span><span><b>${esc(s.project)}</b><br><span class="hint">${esc(s.lastText||'')}</span></span></div>`).join('')||`<div class="quiet">${t('no_sessions')}</div>`);
+  setHTML('extMsgs',(ex.messages||[]).map(m=>`<div class="ev info"><time data-ago="${esc(m.time)}"></time><span></span><span class="tx"><b>${esc(m.from)}</b> → ${esc(m.to)}: ${esc(m.text)}</span></div>`).join('')||'<div class="quiet">—</div>')}
+function tick(){document.querySelectorAll('[data-ago]').forEach(e=>e.textContent=ago(e.dataset.ago));document.querySelectorAll('[data-since]').forEach(e=>e.textContent=dur((Date.now()-ts(e.dataset.since))/1000));document.querySelectorAll('[data-until]').forEach(e=>e.textContent=durWords((ts(e.dataset.until)-Date.now())/1000))}
+setInterval(tick,1000);
+
+/* envelopes fly between the robots in the agent list */
+function flyMessages(){
+  const evs=S.events||[];if(lastEv===null){lastEv=evs.length?evs[0].id:0;return}
+  evs.filter(e=>e.id>lastEv).reverse().forEach(e=>{
+    let toId=null;const m=e.text.match(/→ (\S+?):/);
+    if(e.level==='chatter'&&m){const to=S.agents.find(a=>a.name===m[1]);toId=to&&to.id}
+    else if(e.level==='info'){const ag=S.agents.find(a=>a.id===e.agentId);if(ag&&ag.parentId&&/:/.test(e.text))toId=ag.parentId}
+    if(toId)setTimeout(()=>envelope(e.agentId,toId),80)});
+  if(evs.length)lastEv=Math.max(lastEv,evs[0].id);
+}
+function envelope(fromId,toId){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||view!=='command')return;
+  const A=document.querySelector(`#tree .bav[data-agent="${fromId}"]`),B=document.querySelector(`#tree .bav[data-agent="${toId}"]`);if(!A||!B)return;
+  const a=A.getBoundingClientRect(),b=B.getBoundingClientRect();const n=document.createElement('div');n.className='env';
+  n.innerHTML='<svg width="20" height="14" viewBox="0 0 20 14"><rect x=".8" y=".8" width="18.4" height="12.4" rx="2" fill="#fff" stroke="#1b1f26" stroke-width="1.4"/><path d="M1.6 2 L10 8 L18.4 2" fill="none" stroke="#1b1f26" stroke-width="1.4"/></svg>';
+  document.body.appendChild(n);A.classList.add('wave');setTimeout(()=>A.classList.remove('wave'),700);
+  const x0=a.left+a.width/2,y0=a.top+a.height/2,x1=b.left+b.width/2,y1=b.top+b.height/2,t0=performance.now(),D=900,arc=Math.min(90,40+Math.abs(y1-y0)*.25);
+  (function step(now){const p=Math.min(1,(now-t0)/D),e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    n.style.left=(x0+(x1-x0)*e+Math.sin(p*Math.PI)*arc-10)+'px';n.style.top=(y0+(y1-y0)*e-7)+'px';n.style.rotate=(Math.sin(p*Math.PI*2)*12).toFixed(1)+'deg';
+    if(p<1)requestAnimationFrame(step);else{n.remove();B.classList.remove('hop');void B.offsetWidth;B.classList.add('hop');setTimeout(()=>B.classList.remove('hop'),600)}})(t0);
+}
+
+async function act(id,action,text){try{await api('/api/agent',{ID:id,Action:action,Text:text||''});refresh()}catch(e){toast(e.message)}}
+async function answer(id,ans){if(!String(ans).trim())return;try{await api('/api/decision',{ID:id,Answer:ans});toast(t('answer_sent'));refresh()}catch(e){toast(e.message)}}
+async function cmd(text){const r=await api('/api/command',{Text:text});refresh();return r}
+async function enableTeams(){try{await api('/api/enable-teams',{});refresh()}catch(e){toast(e.message)}}
+async function quitApp(){if(!confirm(t('confirm_quit')))return;await api('/api/quit',{});document.body.innerHTML='<div class="empty" style="margin:25vh auto;justify-content:center"><h3>Agent HQ</h3></div>'}
+$('termIn').addEventListener('keydown',async e=>{const inp=e.target;
+  if(e.key==='Enter'&&inp.value.trim()){const v=inp.value;termHist.push(v);termPos=termHist.length;inp.value='';await cmd(v)}
+  else if(e.key==='ArrowUp'){if(termPos>0){termPos--;inp.value=termHist[termPos]}e.preventDefault()}
+  else if(e.key==='ArrowDown'){if(termPos<termHist.length){termPos++;inp.value=termHist[termPos]||''}e.preventDefault()}
+  else if(e.key==='Tab'){e.preventDefault();const m=inp.value.match(/(\w*)$/);if(!m||!S)return;const hit=S.agents.map(a=>a.name).find(n=>n.startsWith(m[1]));if(hit)inp.value=inp.value.slice(0,inp.value.length-m[1].length)+hit+' '}});
+
+function openMission(){['mText','mName','mCwd'].forEach(i=>$(i).value='');$('mModel').value='';$('mCwd').placeholder=S?S.workspace:'';
+  const cs=(S&&S.connectors||[]).filter(c=>c.enabled);
+  $('mConns').innerHTML=cs.length?`<label class="l">${t('conns_for_mission')}</label>`+cs.map(c=>`<label class="check"><input type="checkbox" class="mc" value="${c.id}" checked><span>${esc(c.name)}</span></label>`).join(''):'';
+  show('missionModal');setTimeout(()=>$('mText').focus(),30)}
+async function launchMission(){const m=$('mText').value.trim();if(!m)return;const boxes=[...document.querySelectorAll('.mc')];const conns=boxes.length?boxes.filter(b=>b.checked).map(b=>b.value):null;
+  try{const r=await api('/api/mission',{Mission:m,Name:$('mName').value,Cwd:$('mCwd').value,Model:$('mModel').value,Connectors:conns});hide('missionModal');toast(t('mission_started')+': '+r.name);refresh()}catch(e){toast(e.message)}}
+
+async function openDrawer(id){drawerId=id;show('drawer');$('db')._h=undefined;$('dh')._h=undefined;await loadLog();renderDrawer()}
+function closeDrawer(){drawerId=null;hide('drawer')}
+async function loadLog(){if(!drawerId)return;try{drLog=await api('/api/agent/log?id='+drawerId)}catch(e){drLog=null}}
+setInterval(async()=>{if(drawerId){await loadLog();renderDrawer()}},2000);
+function renderDrawer(){const a=S.agents.find(x=>x.id===drawerId);if(!a){closeDrawer();return}
+  const p=S.agents.find(x=>x.id===a.parentId),tg=tags();
+  setHTML('dh',`${bot(a)}<div style="flex:1;min-width:0"><div class="a-top">${tagHTML(a,tg)}<h2>${esc(a.name)}</h2><span class="pill p-${a.status}">${t('s_'+a.status)}</span></div><div class="meta">${esc(a.role)}${p?`, ${t('parent')} ${esc(p.name)}`:''}${a.model?`, ${esc(a.model)}`:''}</div></div><div class="ctl">${ctlHTML(a)}</div><button class="btn quiet sm" onclick="closeDrawer()">${t('close')}</button>`);
+  const conns=(S.connectors||[]).filter(c=>c.enabled&&(!a.connectors||a.connectors.includes(c.id))).map(c=>esc(c.name)).join(', ');
+  const log=((drLog&&drLog.log)||[]).slice(-250).map(l=>`<div class="lg ${l.k}"><time class="num">${hm(l.t)}</time><span class="x">${esc(l.x)}</span></div>`).join('');
+  const body=`<div class="facts"><div><b class="num">${a.turns}</b><span>${t('turns')}</span></div><div><b class="num">${a.toolCalls}</b><span>${t('tools')}</span></div><div><b class="num">${fmtTok(a.inTok+a.outTok)}</b><span>${t('tokens')}</span></div><div><b class="num">$${(a.cost||0).toFixed(2)}</b><span>${t('cost')}</span></div></div>
+   <div class="dsec">${t('mission_t')}</div><div class="mission">${esc(a.mission)}</div><p class="hint">${t('folder_t')}: ${esc(a.cwd)}${conns?`<br>${t('nav_connectors')}: ${conns}`:''}</p><div class="dsec">${t('activity')}</div>${log}`;
+  const b=$('db');const bot2=b.scrollHeight-b.scrollTop-b.clientHeight<40;if(b._h!==body){b._h=body;b.innerHTML=body;if(bot2||!b._i){b.scrollTop=b.scrollHeight;b._i=1}}}
+async function sendDrawerMsg(){const v=$('drMsg').value.trim();if(!v||!drawerId)return;$('drMsg').value='';await act(drawerId,'message',v);await loadLog();renderDrawer()}
+$('drMsg').addEventListener('keydown',e=>{if(e.key==='Enter')sendDrawerMsg()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();hide('missionModal');hide('connModal')}});
+
+/* connectors */
+async function loadConnectors(){try{CONN=await api('/api/connectors');renderConnectors()}catch(e){toast(e.message)}}
+async function renderConnectors(){const cfg=await api('/api/config');const tg=S?S.telegram:{};
+  let st=t('tg_not'),L='';if(tg.linked){st=t('tg_linked')+(tg.botName?', @'+tg.botName:'');L='g'}else if(tg.configured){st=t('tg_waiting');L='a'}if(tg.lastError){st=tg.lastError;L='r'}
+  let h=`<h2 class="section-t">${t('messaging')}</h2><p class="section-d">${t('messaging_d')}</p><div class="card"><table class="ctable"><tr><td style="width:24px"><span class="lamp ${L}"></span></td><td style="width:1%" class="nm">Telegram</td><td class="tg" style="width:80%">${esc(st)}</td><td style="text-align:right"><button class="btn sm" onclick="tgOpen=!tgOpen;renderConnectors()">${tg.configured?t('edit'):t('set_up')}</button></td></tr></table>
+   ${tgOpen?`<div class="tg-form"><ol>${t('tg_steps')}</ol><p class="hint">${t('tg_own')}</p><div class="two"><div><label class="l" for="tTok">${t('bot_token')}</label><input class="field" id="tTok" type="password" value="${esc(cfg.botToken)}" placeholder="123456:ABC-DEF…"></div><div><label class="l" for="tChat">${t('chat_id')} <small>${t('chat_auto')}</small></label><input class="field" id="tChat" value="${esc(cfg.chatId)}"></div></div>
+     <label class="l">${t('send_these')}</label><label class="check"><input type="checkbox" id="tU" ${cfg.tgUpdates?'checked':''}><span>${t('n_updates_loud')}</span></label><label class="check" style="margin-left:26px"><input type="checkbox" id="tS" ${cfg.tgSilent?'checked':''}><span>${t('n_silent')}</span></label>
+     <label class="check"><input type="checkbox" id="tD" ${cfg.tgDecisions?'checked':''}><span>${t('n_decisions')}</span></label><label class="check"><input type="checkbox" id="tC" ${cfg.tgCritical?'checked':''}><span>${t('n_critical')}</span></label><label class="check"><input type="checkbox" id="tX" ${cfg.tgChatter?'checked':''}><span>${t('n_chatter')}</span></label>
+     <div class="actions" style="justify-content:flex-start"><button class="btn primary" onclick="saveTg()">${t('save')}</button><button class="btn" onclick="testTg()">${t('send_test')}</button></div></div>`:''}</div>`;
+  h+=`<h2 class="section-t">${t('for_agents')}</h2><p class="section-d">${t('for_agents_d')}</p><div class="card">`;const cs=CONN.connectors||[];
+  if(!cs.length)h+=`<div class="body quiet">${t('none_yet')}</div>`;
+  else h+=`<table class="ctable">${cs.map(c=>{const l=!c.enabled?'':c.error?'r':c.tools&&c.tools.length?'g':'w';const target=c.kind==='http'?c.url:[c.command,...(c.args||[])].join(' ');
+    const stt=c.error?`<div class="err">${esc(c.error)}</div>`:c.tools&&c.tools.length?`<div class="hint">${t('works')}, ${c.tools.length} ${t('tools_n')}</div>`:`<div class="hint">${t('not_tested')}</div>`;
+    return `<tr><td style="width:24px"><span class="lamp ${l}"></span></td><td style="width:26%"><div class="nm">${esc(c.name)}</div>${stt}</td><td class="tg" style="width:50%"><div>${t(c.kind==='http'?'web_service':'local_program')}${c.approval?', '+t('ask_first').toLowerCase():''}</div><div>${esc(target)}</div></td>
+     <td style="text-align:right;white-space:nowrap"><button class="btn sm quiet" id="tb-${c.id}" onclick="testConn('${c.id}')">${t('test')}</button><button class="btn sm quiet" onclick="editConn('${c.id}')">${t('edit')}</button></td>
+     <td style="width:56px"><button class="switch ${c.enabled?'on':''}" role="switch" aria-checked="${c.enabled}" aria-label="${esc(c.name)}" onclick="toggleConn('${c.id}',${!c.enabled})"></button></td></tr>`}).join('')}</table>`;
+  h+=`</div><h2 class="section-t">${t('add_conn')}</h2><p class="section-d">${t('add_conn_d')}</p><div class="catalog">${CONN.presets.map(p=>`<button onclick="newConn('${p.id}')"><b>${esc(p.name)}</b><span>${esc(p.desc[LANG]||p.desc.en)}</span>${p.needs?`<small>${t('needs')}: ${esc(p.needs)}</small>`:''}</button>`).join('')}<button onclick="newConn('')"><b>${t('custom')}</b><span>${t('custom_d')}</span></button></div>`;
+  h+=`<h2 class="section-t">${t('from_cc')}</h2><p class="section-d">${t('from_cc_d')}</p><div class="card">`+((CONN.claudeCode||[]).length?`<table class="ctable">${CONN.claudeCode.map(s=>`<tr><td style="width:24px"><span class="lamp w"></span></td><td style="width:26%" class="nm">${esc(s.name)}</td><td class="tg" style="width:74%">${esc(s.target)}</td></tr>`).join('')}</table>`:`<div class="body quiet">${t('none_cc')}</div>`)+'</div>';
+  $('connPage').innerHTML=h}
+async function saveTg(){try{await api('/api/config',{botToken:$('tTok').value.trim(),chatId:$('tChat').value.trim(),tgUpdates:$('tU').checked,tgSilent:$('tS').checked,tgDecisions:$('tD').checked,tgCritical:$('tC').checked,tgChatter:$('tX').checked});toast(t('saved'));await refresh();renderConnectors()}catch(e){toast(e.message)}}
+async function testTg(){try{await api('/api/telegram/test',{});toast('OK')}catch(e){toast(e.message)}}
+async function toggleConn(id,on){await api('/api/connectors/toggle',{ID:id,Enabled:on});await refresh();loadConnectors()}
+async function testConn(id){const b=$('tb-'+id);if(b){b.disabled=true;b.textContent=t('testing')}try{await api('/api/connectors/test',{ID:id})}catch(e){}loadConnectors();refresh()}
+let editing=null;
+function newConn(pid){const p=CONN.presets.find(x=>x.id===pid);editing=p?{id:'',name:p.name,preset:p.id,kind:p.kind,command:p.command||'',args:[...(p.args||[])],url:p.url||'',env:{},headers:{},enabled:true,approval:false,_p:p}:{id:'',name:'',preset:'',kind:'http',command:'',args:[],url:'',env:{},headers:{},enabled:true,approval:false};renderConnModal();show('connModal')}
+function editConn(id){const c=CONN.connectors.find(x=>x.id===id);editing=JSON.parse(JSON.stringify(c));editing.env=editing.env||{};editing.headers=editing.headers||{};editing.args=editing.args||[];editing._p=CONN.presets.find(x=>x.id===c.preset);renderConnModal();show('connModal')}
+function kvRows(kind,obj){return Object.entries(obj).map(([k,v])=>`<div class="kv-row"><input class="field kvk-${kind}" value="${esc(k)}" placeholder="${t('c_key')}"><input class="field kvv-${kind}" value="${esc(v)}" placeholder="${t('c_val')}"><button class="btn quiet sm" onclick="this.parentNode.remove()">${t('remove')}</button></div>`).join('')}
+function renderConnModal(){const e=editing,p=e._p;let simple='';
+  if(p&&p.fields&&p.fields.length)simple=p.fields.map((f,i)=>{let v='';if(f.target==='env')v=e.env[f.key]||'';if(f.target==='header')v=(e.headers[f.key]||'').replace(f.prefix||'','');if(f.target==='url')v=e.url;if(f.target==='arg')v=e.args.length>(p.args||[]).length?e.args[e.args.length-1]:'';
+    return `<label class="l" for="pf${i}">${esc(f.label)}</label><input class="field" id="pf${i}" type="${f.secret?'password':'text'}" value="${esc(v)}" placeholder="${esc(f.placeholder||'')}">`}).join('');
+  $('connBody').innerHTML=`<h2>${esc(e.id?e.name:(p?p.name:t('custom')))}</h2>${p?`<p class="lead">${esc(p.desc[LANG]||p.desc.en)} <a href="${esc(p.docs)}" target="_blank" rel="noopener" style="color:var(--accent)">${t('c_docs')}</a></p>`:''}
+   <label class="l" for="cName">${t('c_name')}</label><input class="field" id="cName" value="${esc(e.name)}">${simple}
+   <details ${p?'':'open'} style="margin-top:14px"><summary class="hint" style="cursor:pointer">${t('c_more')}</summary>
+   <label class="l">${t('c_type')}</label><div class="radio"><label><input type="radio" name="ck" ${e.kind==='http'?'checked':''} onchange="syncConn();editing.kind='http';renderConnModal()"><span>${t('web_service')}</span></label><label><input type="radio" name="ck" ${e.kind!=='http'?'checked':''} onchange="syncConn();editing.kind='stdio';renderConnModal()"><span>${t('local_program')}</span></label></div>
+   ${e.kind==='http'?`<label class="l" for="cUrl">${t('c_url')}</label><input class="field" id="cUrl" value="${esc(e.url)}" placeholder="https://…/mcp"><label class="l">${t('c_headers')}</label><div>${kvRows('h',e.headers)}</div><button class="btn sm" onclick="addKV('h')">${t('c_add')}</button>`
+    :`<label class="l" for="cCmd">${t('c_cmd')}</label><input class="field" id="cCmd" value="${esc(e.command)}" placeholder="npx"><label class="l" for="cArgs">${t('c_args')} <small>${t('c_args_h')}</small></label><textarea class="field" id="cArgs" style="min-height:70px">${esc(e.args.join('\n'))}</textarea><label class="l">${t('c_env')}</label><div>${kvRows('e',e.env)}</div><button class="btn sm" onclick="addKV('e')">${t('c_add')}</button>`}</details>
+   <label class="check" style="margin-top:16px"><input type="checkbox" id="cAsk" ${e.approval?'checked':''}><span>${t('c_ask')}</span></label>
+   <div class="actions">${e.id?`<button class="btn quiet danger" onclick="delConn('${e.id}')">${t('remove')}</button>`:''}<span class="sp"></span><button class="btn quiet" onclick="hide('connModal')">${t('cancel')}</button><button class="btn primary" onclick="saveConn()">${t('c_save')}</button></div>`}
+function addKV(kind){syncConn();(kind==='h'?editing.headers:editing.env)['']='';renderConnModal()}
+function readKV(kind){const ks=[...document.querySelectorAll('.kvk-'+kind)],vs=[...document.querySelectorAll('.kvv-'+kind)];const o={};ks.forEach((k,i)=>{if(k.value.trim()||vs[i].value)o[k.value.trim()]=vs[i].value});return o}
+function syncConn(){const e=editing;if($('cName'))e.name=$('cName').value;if($('cUrl')){e.url=$('cUrl').value.trim();e.headers=readKV('h')}if($('cCmd')){e.command=$('cCmd').value.trim();e.args=$('cArgs').value.split('\n').map(x=>x.trim()).filter(Boolean);e.env=readKV('e')}if($('cAsk'))e.approval=$('cAsk').checked;
+  const p=e._p;if(p&&p.fields)p.fields.forEach((f,i)=>{const el=$('pf'+i);if(!el)return;const v=el.value.trim();if(f.target==='env'&&v)e.env[f.key]=v;if(f.target==='header'&&v)e.headers[f.key]=v.includes('••••')?v:(f.prefix||'')+v;if(f.target==='url'&&v)e.url=v;if(f.target==='arg'){const base=(p.args||[]).length;e.args=e.args.slice(0,base);if(v)e.args.push(v)}})}
+async function saveConn(){syncConn();const e={...editing};delete e._p;try{const r=await api('/api/connectors/save',e);hide('connModal');toast(t('c_saved'));await loadConnectors();testConn(r.id)}catch(err){toast(err.message)}}
+async function delConn(id){await api('/api/connectors/delete',{ID:id});hide('connModal');loadConnectors();refresh()}
+
+/* settings */
+function fld(id,label,val,type='text',extra=''){return `<label class="l" for="${id}">${label}</label><input class="field" id="${id}" type="${type}" value="${esc(val??'')}" ${extra}>`}
+function permRadio(name,cur){return `<div class="radio">${[['ask','perm_ask'],['edits','perm_edits'],['full','perm_full']].map(([v,k])=>`<label><input type="radio" name="${name}" value="${v}" ${cur===v?'checked':''}><span><b>${t(k)}</b><small>${t(k+'_d')}</small></span></label>`).join('')}</div>`}
+async function renderSettings(){const c=await api('/api/config');
+  $('settingsForm').innerHTML=`<div class="card"><header><h2>${t('g_general')}</h2></header><div class="body">
+    <div class="two"><div><label class="l" for="sLang">${t('language')}</label><select class="field" id="sLang"><option value="en" ${c.lang==='en'?'selected':''}>English</option><option value="nl" ${c.lang==='nl'?'selected':''}>Nederlands</option></select></div>
+    <div><label class="l" for="sTheme">${t('theme')}</label><select class="field" id="sTheme"><option value="dark" ${c.theme!=='light'?'selected':''}>${t('dark')}</option><option value="light" ${c.theme==='light'?'selected':''}>${t('light')}</option></select></div></div>
+    ${fld('sWs',t('workspace'),c.workspace)}<label class="check" style="margin-top:14px"><input type="checkbox" id="sAuto" ${S&&S.autostart?'checked':''} ${S&&S.canAutostart?'':'disabled'}><span>${t('autostart')}</span></label></div></div>
+  <div class="card"><header><h2>${t('g_claude')}</h2></header><div class="body">${fld('sClaude',t('claude_path'),c.claudePath,'text',`placeholder="${t('auto_find')}"`)}
+    <p class="hint" id="sClaudeRes">${S&&S.claudePath?t('found')+': '+esc(S.claudePath):''}</p><button class="btn sm" onclick="testClaude('sClaude','sClaudeRes')">${t('test')}</button>
+    <label class="l" for="sModel">${t('model')}</label><select class="field" id="sModel">${['','opus','sonnet','haiku'].map(m=>`<option value="${m}" ${c.defaultModel===m?'selected':''}>${m?m[0].toUpperCase()+m.slice(1):t('model_default')}</option>`).join('')}</select></div></div>
+  <div class="card"><header><h2>${t('g_agents')}</h2></header><div class="body"><label class="l">${t('perm')}</label>${permRadio('sPerm',c.permissionMode)}
+    <div class="two"><div>${fld('sMaxA',t('max_agents'),c.maxAgents,'number','min=1 max=50')}</div><div>${fld('sMaxR',t('max_running'),c.maxRunning,'number','min=1 max=20')}</div></div>
+    <div class="two"><div>${fld('sMaxD',t('max_depth'),c.maxDepth,'number','min=1 max=6')}</div><div>${fld('sMaxT',t('max_turns'),c.maxTurns,'number','min=1 max=500')}</div></div></div></div>
+  <div class="card"><header><h2>${t('g_usage')}</h2></header><div class="body">${fld('sBudget',t('budget'),c.tokenBudget,'number','min=0 step=10000')}<p class="hint">${t('budget_d')}</p></div></div>`}
+async function saveSettings(){const body={lang:$('sLang').value,theme:$('sTheme').value,workspace:$('sWs').value,claudePath:$('sClaude').value.trim(),defaultModel:$('sModel').value,permissionMode:(document.querySelector('input[name=sPerm]:checked')||{}).value,
+  maxAgents:+$('sMaxA').value,maxRunning:+$('sMaxR').value,maxDepth:+$('sMaxD').value,maxTurns:+$('sMaxT').value,tokenBudget:+$('sBudget').value||0};
+  try{await api('/api/config',body);if(S&&S.canAutostart&&$('sAuto').checked!==S.autostart)await api('/api/autostart',{Enabled:$('sAuto').checked});setTheme(body.theme);if(body.lang!==LANG){LANG=body.lang;applyI18n()}toast(t('saved'));refresh();renderSettings()}catch(e){toast(e.message)}}
+async function testClaude(inp,out){$(out).textContent=t('testing');try{const r=await api('/api/claude/test',{Path:$(inp).value.trim()});$(out).innerHTML=`<span class="ok">${esc(r.version)}</span><br>${esc(r.path)}`}catch(e){$(out).innerHTML=`<span class="bad">${esc(e.message)}</span>`}}
+
+/* setup */
+let wz={};
+async function openWizard(){const c=await api('/api/config');wz={step:0,lang:c.lang||LANG,claudePath:c.claudePath||'',workspace:c.workspace,perm:c.permissionMode,tok:c.botToken||''};show('wizard');renderWizard()}
+function renderWizard(){const s=wz.step;const mood=['wave s-idle','s-queued','s-running','s-waiting','s-done'][s];
+  let h=`<div class="progress">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="hero"><div class="bav ${mood}" style="--c:#f08a4b">${BOT}</div><div>`;
+  if(s===0)h+=`<h2>${t('w_hello')}</h2><p class="lead">${t('w_lang')}</p></div></div><div class="langpick"><button class="${wz.lang==='en'?'on':''}" onclick="wzLang('en')">English<small>Interface, Telegram and agent reports</small></button><button class="${wz.lang==='nl'?'on':''}" onclick="wzLang('nl')">Nederlands<small>Interface, Telegram en rapporten van agents</small></button></div>`;
+  if(s===1)h+=`<h2>${t('w_claude')}</h2><p class="lead">${t('w_claude_d')}</p></div></div><p id="wzRes">${S&&S.claudePath?`<span class="ok">${t('w_found')}</span> ${esc(S.claudePath)}`:`<span class="bad">${t('w_missing')}</span>`}</p>${fld('wzClaude',t('claude_path'),wz.claudePath,'text',`placeholder="${t('auto_find')}"`)}<p><button class="btn sm" onclick="testClaude('wzClaude','wzRes')">${t('test')}</button></p>`;
+  if(s===2)h+=`<h2>${t('w_agents')}</h2></div></div>${permRadio('wzPerm',wz.perm)}${fld('wzWs',t('workspace'),wz.workspace)}`;
+  if(s===3)h+=`<h2>${t('w_tg')}</h2><p class="lead">${t('w_tg_d')}</p></div></div><ol style="color:var(--muted);padding-left:20px">${t('tg_steps')}</ol>${fld('wzTok',t('bot_token'),wz.tok,'password','placeholder="123456:ABC-DEF…"')}`;
+  if(s===4)h+=`<h2>${t('w_ready')}</h2><p class="lead">${t('w_ready_d')}</p></div></div>`;
+  h+=`<div class="actions">${s>0?`<button class="btn quiet" onclick="wzMove(-1)">${t('back')}</button>`:''}<span class="sp"></span>${s===3?`<button class="btn quiet" onclick="$('wzTok').value='';wzMove(1)">${t('skip')}</button>`:''}<button class="btn primary" onclick="wzMove(1)">${s===4?t('finish'):t('next')}</button></div>`;
+  $('wizBody').innerHTML=h}
+function wzLang(l){wz.lang=l;LANG=l;applyI18n();renderWizard()}
+async function wzMove(d){const s=wz.step;if(s===1)wz.claudePath=$('wzClaude').value.trim();
+  if(s===2){wz.perm=(document.querySelector('input[name=wzPerm]:checked')||{}).value||'edits';wz.workspace=$('wzWs').value.trim()}if(s===3)wz.tok=$('wzTok').value.trim();
+  if(s===4&&d>0){const body={lang:wz.lang,claudePath:wz.claudePath,permissionMode:wz.perm,workspace:wz.workspace,setupDone:true};if(wz.tok&&!wz.tok.includes('•'))body.botToken=wz.tok;await api('/api/config',body);hide('wizard');refresh();return}
+  wz.step=Math.max(0,Math.min(4,s+d));renderWizard()}
+
+applyI18n();
+refresh().then(()=>{const m=location.hash.match(/agent=(\w+)/);if(m)openDrawer(m[1]);const v=location.hash.match(/view=(\w+)/);if(v)go(v[1]);const th=location.hash.match(/theme=(\w+)/);if(th)setTheme(th[1])});
+setInterval(refresh,1500);
+</script>
+</body>
+</html>

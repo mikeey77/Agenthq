@@ -1,0 +1,31 @@
+name: Build AgentHQ.exe
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - name: Build Windows exe
+        run: GOOS=windows GOARCH=amd64 go build -ldflags "-H windowsgui -s -w" -o AgentHQ.exe .
+      - name: Zip
+        run: zip AgentHQ-windows.zip AgentHQ.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AgentHQ-windows
+          path: AgentHQ-windows.zip
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: AgentHQ-windows.zip
