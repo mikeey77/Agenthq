@@ -262,6 +262,12 @@ func (a *App) handleUpdate(um map[string]any) {
 		_ = saveConfig(a.cfg)
 		linked = chatID
 		a.emit("info", "", "Telegram linked")
+		// send decisions that were already waiting before the chat was linked
+		for _, d := range a.decisions {
+			if d.Status == "pending" && d.tgMsgID == 0 {
+				go a.tgSendDecision(d)
+			}
+		}
 	}
 	a.mu.Unlock()
 	if chatID != linked {
