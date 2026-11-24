@@ -7,27 +7,29 @@ import (
 )
 
 type Config struct {
-	Lang           string `json:"lang"`
-	SetupDone      bool   `json:"setupDone"`
-	BotToken       string `json:"botToken"`
-	ChatID         string `json:"chatId"`
-	TgUpdates      bool   `json:"tgUpdates"`
-	TgSilent       bool   `json:"tgSilent"`
-	TgDecisions    bool   `json:"tgDecisions"`
-	TgCritical     bool   `json:"tgCritical"`
-	TgChatter      bool   `json:"tgChatter"`
-	ClaudePath     string `json:"claudePath"`
-	Workspace      string `json:"workspace"`
-	PermissionMode string `json:"permissionMode"` // ask | edits | full
-	DefaultModel   string `json:"defaultModel"`
-	MaxAgents      int    `json:"maxAgents"`
-	MaxRunning     int    `json:"maxRunning"`
-	MaxDepth       int    `json:"maxDepth"`
-	MaxTurns       int    `json:"maxTurns"`
-	TokenBudget    int64  `json:"tokenBudget"` // 0 = auto (busiest previous block)
-	Theme          string `json:"theme"` // light | dark
+	Lang           string      `json:"lang"`
+	SetupDone      bool        `json:"setupDone"`
+	BotToken       string      `json:"botToken"`
+	ChatID         string      `json:"chatId"`
+	TgUpdates      bool        `json:"tgUpdates"`
+	TgSilent       bool        `json:"tgSilent"`
+	TgDecisions    bool        `json:"tgDecisions"`
+	TgCritical     bool        `json:"tgCritical"`
+	TgChatter      bool        `json:"tgChatter"`
+	ClaudePath     string      `json:"claudePath"`
+	Workspace      string      `json:"workspace"`
+	PermissionMode string      `json:"permissionMode"` // ask | edits | full
+	DefaultModel   string      `json:"defaultModel"`
+	MaxAgents      int         `json:"maxAgents"`
+	MaxRunning     int         `json:"maxRunning"`
+	MaxDepth       int         `json:"maxDepth"`
+	MaxTurns       int         `json:"maxTurns"`
+	TokenBudget    int64       `json:"tokenBudget"` // 0 = auto (busiest previous block)
+	Theme          string      `json:"theme"`       // light | dark
+	AutoUpdate     bool        `json:"autoUpdate"`
+	UpdateRepo     string      `json:"updateRepo"`
 	Connectors     []Connector `json:"connectors"`
-	Port           int    `json:"port"`
+	Port           int         `json:"port"`
 }
 
 func configDir() string {
@@ -45,7 +47,7 @@ func defaultConfig() Config {
 	return Config{
 		Lang: "en", TgUpdates: true, TgSilent: true, TgDecisions: true, TgCritical: true,
 		Workspace: filepath.Join(h, "AgentHQ"), PermissionMode: "edits",
-		Theme: "dark", MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
+		Theme: "dark", AutoUpdate: true, UpdateRepo: defaultUpdateRepo, MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
 	}
 }
 

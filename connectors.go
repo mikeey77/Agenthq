@@ -45,16 +45,16 @@ type PresetField struct {
 }
 
 type Preset struct {
-	ID      string        `json:"id"`
-	Name    string        `json:"name"`
+	ID      string            `json:"id"`
+	Name    string            `json:"name"`
 	Desc    map[string]string `json:"desc"`
-	Kind    string        `json:"kind"`
-	Command string        `json:"command"`
-	Args    []string      `json:"args"`
-	URL     string        `json:"url"`
-	Fields  []PresetField `json:"fields"`
-	Docs    string        `json:"docs"`
-	Needs   string        `json:"needs"` // runtime requirement shown to user
+	Kind    string            `json:"kind"`
+	Command string            `json:"command"`
+	Args    []string          `json:"args"`
+	URL     string            `json:"url"`
+	Fields  []PresetField     `json:"fields"`
+	Docs    string            `json:"docs"`
+	Needs   string            `json:"needs"` // runtime requirement shown to user
 }
 
 var presets = []Preset{

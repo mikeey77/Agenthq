@@ -43,6 +43,11 @@ nav button:hover{background:var(--panel);color:var(--text)}
 nav button.on{background:var(--panel2);color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
 nav .badge{margin-left:auto;background:var(--amber);color:#231700;font:700 12px "Barlow SC";border-radius:99px;padding:1px 8px}
 nav .badge:empty{display:none}
+.upd{margin:auto 4px 10px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);font-size:13.5px}
+.upd b{display:block;font:600 15px "Barlow SC";margin-bottom:2px}
+.upd .btn{width:100%;justify-content:center;margin-top:8px}
+.upd:empty{display:none}
+.upd:not(:empty)+.side-foot{margin-top:0}
 .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:12px 8px 2px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 .side-foot .st{display:flex;align-items:center;gap:9px}
 .side-foot button{all:unset;cursor:pointer;color:var(--dim);font-size:13px;margin-top:4px}
@@ -366,6 +371,7 @@ label.l small{font-weight:400;color:var(--muted)}
     <button data-view="claude"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="3" width="15" height="11" rx="2"/><path d="M5 7l2 2-2 2M9.5 11H13"/></svg><span data-i="nav_claude"></span></button>
     <button data-view="settings"><svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h12M3 9h12M3 13h12"/><circle cx="6" cy="5" r="1.6" fill="var(--bg2)"/><circle cx="12" cy="9" r="1.6" fill="var(--bg2)"/><circle cx="8" cy="13" r="1.6" fill="var(--bg2)"/></svg><span data-i="nav_settings"></span></button>
   </nav>
+  <div class="upd" id="updBox"></div>
   <div class="side-foot"><div class="st" id="stClaude"></div><div class="st" id="stTg"></div><div class="st" id="stLive"></div><button onclick="quitApp()" data-i="quit"></button></div>
 </aside>
 
@@ -435,7 +441,7 @@ label.l small{font-weight:400;color:var(--muted)}
 
 <script>
 const I18N={
-en:{nav_command:"Command",clear_done:"Clear finished",cleared:"Cleared",notif_on:"Desktop notifications are on",nav_decisions:"Decisions",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Settings",quit:"Quit Agent HQ",
+en:{nav_command:"Command",upd_title:"Updates",upd_current:"Installed version",upd_latest:"Latest version",upd_check:"Check now",upd_auto:"Install updates automatically when no agent is working",upd_avail:"Version {v} is available",upd_btn:"Restart and update",upd_down:"Downloading update…",upd_inst:"Installing, Agent HQ restarts…",upd_none:"You have the latest version.",upd_notes:"What's new",upd_checked:"Last checked",upd_paused:"Running agents pause and continue after the restart.",clear_done:"Clear finished",cleared:"Cleared",notif_on:"Desktop notifications are on",nav_decisions:"Decisions",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Settings",quit:"Quit Agent HQ",
  pause_all:"Pause all",stop_all:"Stop all",new_mission:"New mission",agents:"Agents",waiting_on_you:"Waiting on you",log:"Log",
  terminal:"Master terminal",term_hint:"Type a mission to start one. @name sends a message. help lists all commands. Ctrl+K jumps here.",term_ph:"Describe what you want done",
  st_running:"Running",st_waiting:"Waiting on you",st_agents:"Agents",st_spent:"Spent",st_done:"Done",of:"of",
@@ -474,7 +480,7 @@ en:{nav_command:"Command",clear_done:"Clear finished",cleared:"Cleared",notif_on
  w_found:"Found Claude Code at",w_missing:"Claude Code isn't installed or isn't on your PATH. Install it, run claude once to log in, then test again.",
  w_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Type your first mission in the master terminal, or use New mission.",
  next:"Next",back:"Back",skip:"Skip",finish:"Open Agent HQ",answer_sent:"Answer sent",now:"now"},
-nl:{nav_command:"Commando",clear_done:"Afgeronde opruimen",cleared:"Opgeruimd",notif_on:"Bureaubladmeldingen staan aan",nav_decisions:"Beslissingen",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Instellingen",quit:"Agent HQ afsluiten",
+nl:{nav_command:"Commando",upd_title:"Updates",upd_current:"Geïnstalleerde versie",upd_latest:"Nieuwste versie",upd_check:"Nu controleren",upd_auto:"Updates automatisch installeren als er geen agent bezig is",upd_avail:"Versie {v} is beschikbaar",upd_btn:"Herstarten en bijwerken",upd_down:"Update downloaden…",upd_inst:"Installeren, Agent HQ herstart…",upd_none:"Je hebt de nieuwste versie.",upd_notes:"Wat is er nieuw",upd_checked:"Laatst gecontroleerd",upd_paused:"Lopende agents pauzeren en gaan na de herstart verder.",clear_done:"Afgeronde opruimen",cleared:"Opgeruimd",notif_on:"Bureaubladmeldingen staan aan",nav_decisions:"Beslissingen",nav_connectors:"Connectors",nav_claude:"Claude Code",nav_settings:"Instellingen",quit:"Agent HQ afsluiten",
  pause_all:"Alles pauzeren",stop_all:"Alles stoppen",new_mission:"Nieuwe missie",agents:"Agents",waiting_on_you:"Wacht op jou",log:"Logboek",
  terminal:"Master terminal",term_hint:"Typ een missie om te starten. @naam stuurt een bericht. help toont alle commando's. Ctrl+K springt hierheen.",term_ph:"Beschrijf wat er moet gebeuren",
  st_running:"Bezig",st_waiting:"Wacht op jou",st_agents:"Agents",st_spent:"Uitgegeven",st_done:"Klaar",of:"van",
@@ -562,7 +568,10 @@ async function refresh(){
     render();SEEN.boot=true;
   }catch(e){console.error(e);setHTML('stLive',`<span class="lamp r"></span>${t('st_off')}`)}
 }
+let firstVersion=null;
 function render(){
+  if(firstVersion===null)firstVersion=S.version;else if(S.version!==firstVersion){location.reload();return}
+  renderUpdBox();
   $('ver').textContent='Version '+S.version+(S.demo?' (demo)':'');
   const brand=$('brandBot');const busy=S.stats.running>0;brand.className='bav '+(S.decisions.length?'s-waiting':busy?'s-running':'s-idle');
   setHTML('stClaude',`<span class="lamp ${S.claudeFound?'g':'r'}"></span>${t(S.claudeFound?'st_claude_ok':'st_claude_no')}`);
@@ -729,6 +738,22 @@ function notify(){
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();go('command');$('termIn').focus()}});
 
 
+
+/* updates */
+function renderUpdBox(){
+  const u=S.update||{};let h='';
+  if(u.available){
+    if(u.state==='downloading')h=`<b>${t('upd_avail').replace('{v}',esc(u.latest))}</b>${t('upd_down')}`;
+    else if(u.state==='installing')h=`<b>${t('upd_avail').replace('{v}',esc(u.latest))}</b>${t('upd_inst')}`;
+    else h=`<b>${t('upd_avail').replace('{v}',esc(u.latest))}</b><span class="hint">${S.stats.running?t('upd_paused'):''}</span>${u.state==='error'?`<div class="bad">${esc(u.error)}</div>`:''}<button class="btn primary sm" onclick="installUpdate()">${t('upd_btn')}</button>`;
+  }
+  setHTML('updBox',h);
+}
+async function installUpdate(){try{await api('/api/update/install',{});toast(t('upd_down'));refresh()}catch(e){toast(e.message)}}
+async function checkUpdate(){$('updRes').textContent='…';try{const u=await api('/api/update/check',{});S.update=u;renderUpdBox();renderUpdCard(u)}catch(e){$('updRes').textContent=e.message}}
+function renderUpdCard(u){const el=$('updRes');if(!el)return;
+  el.innerHTML=`${t('upd_current')}: <b>${esc(u.current)}</b>${u.latest?`<br>${t('upd_latest')}: <b>${esc(u.latest)}</b>`:''}<br>${u.available?`<span class="ok">${t('upd_avail').replace('{v}',esc(u.latest))}</span>`:u.error?`<span class="bad">${esc(u.error)}</span>`:t('upd_none')}${u.checked&&ts(u.checked)?`<br><span class="hint">${t('upd_checked')}: ${hm(u.checked)}</span>`:''}${u.notes?`<div class="dsec">${t('upd_notes')}</div><div class="md hint">${md(u.notes)}</div>`:''}`}
+
 /* connectors */
 async function loadConnectors(){try{CONN=await api('/api/connectors');renderConnectors()}catch(e){toast(e.message)}}
 async function renderConnectors(){const cfg=await api('/api/config');const tg=S?S.telegram:{};
@@ -788,9 +813,11 @@ async function renderSettings(){const c=await api('/api/config');
   <div class="card"><header><h2>${t('g_agents')}</h2></header><div class="body"><label class="l">${t('perm')}</label>${permRadio('sPerm',c.permissionMode)}
     <div class="two"><div>${fld('sMaxA',t('max_agents'),c.maxAgents,'number','min=1 max=50')}</div><div>${fld('sMaxR',t('max_running'),c.maxRunning,'number','min=1 max=20')}</div></div>
     <div class="two"><div>${fld('sMaxD',t('max_depth'),c.maxDepth,'number','min=1 max=6')}</div><div>${fld('sMaxT',t('max_turns'),c.maxTurns,'number','min=1 max=500')}</div></div></div></div>
-  <div class="card"><header><h2>${t('g_usage')}</h2></header><div class="body">${fld('sBudget',t('budget'),c.tokenBudget,'number','min=0 step=10000')}<p class="hint">${t('budget_d')}</p></div></div>`}
+  <div class="card"><header><h2>${t('g_usage')}</h2></header><div class="body">${fld('sBudget',t('budget'),c.tokenBudget,'number','min=0 step=10000')}<p class="hint">${t('budget_d')}</p></div></div>
+  <div class="card"><header><h2>${t('upd_title')}</h2></header><div class="body"><p id="updRes"></p><label class="check"><input type="checkbox" id="sAutoUpd" ${c.autoUpdate?'checked':''}><span>${t('upd_auto')}</span></label><button class="btn sm" onclick="checkUpdate()">${t('upd_check')}</button></div></div>`;
+  renderUpdCard(S.update||{current:S.version})}
 async function saveSettings(){const body={lang:$('sLang').value,theme:$('sTheme').value,workspace:$('sWs').value,claudePath:$('sClaude').value.trim(),defaultModel:$('sModel').value,permissionMode:(document.querySelector('input[name=sPerm]:checked')||{}).value,
-  maxAgents:+$('sMaxA').value,maxRunning:+$('sMaxR').value,maxDepth:+$('sMaxD').value,maxTurns:+$('sMaxT').value,tokenBudget:+$('sBudget').value||0};
+  maxAgents:+$('sMaxA').value,maxRunning:+$('sMaxR').value,maxDepth:+$('sMaxD').value,maxTurns:+$('sMaxT').value,tokenBudget:+$('sBudget').value||0,autoUpdate:$('sAutoUpd').checked};
   try{await api('/api/config',body);if(S&&S.canAutostart&&$('sAuto').checked!==S.autostart)await api('/api/autostart',{Enabled:$('sAuto').checked});setTheme(body.theme);if(body.lang!==LANG){LANG=body.lang;applyI18n()}toast(t('saved'));refresh();renderSettings()}catch(e){toast(e.message)}}
 async function testClaude(inp,out){$(out).textContent=t('testing');try{const r=await api('/api/claude/test',{Path:$(inp).value.trim()});$(out).innerHTML=`<span class="ok">${esc(r.version)}</span><br>${esc(r.path)}`}catch(e){$(out).innerHTML=`<span class="bad">${esc(e.message)}</span>`}}
 

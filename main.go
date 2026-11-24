@@ -26,7 +26,8 @@ var indexHTML []byte
 var fontFS embed.FS
 
 const appName = "AgentHQ"
-const version = "2.1.0"
+
+var version = "2.2.0" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -51,6 +52,7 @@ type App struct {
 	claudeDir string
 	demo      bool
 	term      []TermLine
+	upd       UpdateInfo
 }
 
 func (a *App) termAdd(kind string, lines ...string) {
@@ -188,10 +190,10 @@ func (a *App) stateJSON() map[string]any {
 		"claudePath": claude, "claudeFound": claude != "",
 		"agents": views, "decisions": a.pendingDecisions(), "recentDecisions": recent,
 		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget),
-		"stats": stats, "connectors": conns, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
+		"stats": stats, "connectors": conns, "update": func() UpdateInfo { u := a.upd; u.Current = version; return u }(), "autoUpdate": a.cfg.AutoUpdate, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
 		"permissionMode": a.cfg.PermissionMode, "workspace": a.cfg.Workspace, "term": append([]TermLine{}, a.term...),
 		"limits": map[string]int{"maxAgents": a.cfg.MaxAgents, "maxRunning": a.cfg.MaxRunning},
-		"now": time.Now(),
+		"now":    time.Now(),
 	}
 }
 
@@ -204,6 +206,7 @@ func (a *App) routes() *http.ServeMux {
 	mux.HandleFunc("/mcp/", a.handleMCP)
 	mux.Handle("/fonts/", http.FileServer(http.FS(fontFS)))
 	a.connectorRoutes(mux)
+	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })
 	mux.HandleFunc("/api/agent/log", func(w http.ResponseWriter, r *http.Request) {
 		a.mu.Lock()
@@ -424,13 +427,15 @@ func (a *App) routes() *http.ServeMux {
 }
 
 func main() {
-	background, demo := false, false
+	background, demo, updated := false, false, false
 	for _, arg := range os.Args[1:] {
 		switch arg {
 		case "--background":
 			background = true
 		case "--demo":
 			demo = true
+		case "--updated":
+			background, updated = true, true
 		}
 	}
 	_ = os.MkdirAll(configDir(), 0o755)
@@ -445,6 +450,10 @@ func main() {
 	addr := fmt.Sprintf("127.0.0.1:%d", app.cfg.Port)
 	uiURL := "http://" + addr
 	ln, err := net.Listen("tcp", addr)
+	for i := 0; err != nil && updated && i < 40; i++ { // the old version is still shutting down
+		time.Sleep(250 * time.Millisecond)
+		ln, err = net.Listen("tcp", addr)
+	}
 	if err != nil { // already running: just open the window
 		if !background {
 			openUI(uiURL)
@@ -457,7 +466,10 @@ func main() {
 		app.loadState()
 		app.mu.Lock()
 		app.emit("info", "", app.T("started"))
+		app.schedule()
 		app.mu.Unlock()
+		go cleanupOldExe()
+		go app.updateLoop()
 	}
 	app.external = scanExternal(app.claudeDir)
 	go func() {

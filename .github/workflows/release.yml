@@ -1,8 +1,10 @@
-name: Build AgentHQ.exe
+name: Build and release
 
 on:
   push:
+    branches: [main]
     tags: ["v*"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -16,16 +18,25 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.24"
-      - name: Build Windows exe
-        run: GOOS=windows GOARCH=amd64 go build -ldflags "-H windowsgui -s -w" -o AgentHQ.exe .
-      - name: Zip
-        run: zip AgentHQ-windows.zip AgentHQ.exe
+      - name: Test
+        run: go vet ./... && go test ./...
+      - name: Build AgentHQ.exe
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; else V="0.0.0-dev+${GITHUB_SHA::7}"; fi
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H windowsgui -s -w -X main.version=$V" -o AgentHQ.exe .
+          zip AgentHQ-windows.zip AgentHQ.exe
+          sha256sum AgentHQ-windows.zip > AgentHQ-windows.zip.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: AgentHQ-windows
-          path: AgentHQ-windows.zip
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/')
+          path: |
+            AgentHQ-windows.zip
+            AgentHQ-windows.zip.sha256
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: AgentHQ-windows.zip
+          generate_release_notes: true
+          files: |
+            AgentHQ-windows.zip
+            AgentHQ-windows.zip.sha256

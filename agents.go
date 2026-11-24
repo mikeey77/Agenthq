@@ -27,33 +27,34 @@ type LogEntry struct {
 }
 
 type Agent struct {
-	ID            string     `json:"id"`
-	Name          string     `json:"name"`
-	Role          string     `json:"role"`
-	Mission       string     `json:"mission"`
-	ParentID      string     `json:"parentId"`
-	Cwd           string     `json:"cwd"`
-	Model         string     `json:"model"`
-	Color         string     `json:"color"`
-	Status        string     `json:"status"` // queued running waiting paused idle done stopped error
-	SessionID     string     `json:"sessionId"`
-	Activity      string     `json:"activity"`
-	Summary       string     `json:"summary"`
-	Depth         int        `json:"depth"`
-	Created       time.Time  `json:"created"`
-	Updated       time.Time  `json:"updated"`
-	TurnStart     time.Time  `json:"turnStart"`
-	Cost          float64    `json:"cost"`
-	Turns         int        `json:"turns"`
-	AutoTurns     int        `json:"autoTurns"`
-	InTok         int64      `json:"inTok"`
-	OutTok        int64      `json:"outTok"`
-	ToolCalls     int        `json:"toolCalls"`
-	Inbox         []string   `json:"inbox"`
-	Connectors    []string   `json:"connectors"` // nil = all enabled
-	NeedsContinue bool       `json:"needsContinue"`
-	Completed     bool       `json:"completed"`
-	Log           []LogEntry `json:"log"`
+	ID                 string     `json:"id"`
+	Name               string     `json:"name"`
+	Role               string     `json:"role"`
+	Mission            string     `json:"mission"`
+	ParentID           string     `json:"parentId"`
+	Cwd                string     `json:"cwd"`
+	Model              string     `json:"model"`
+	Color              string     `json:"color"`
+	Status             string     `json:"status"` // queued running waiting paused idle done stopped error
+	SessionID          string     `json:"sessionId"`
+	Activity           string     `json:"activity"`
+	Summary            string     `json:"summary"`
+	Depth              int        `json:"depth"`
+	Created            time.Time  `json:"created"`
+	Updated            time.Time  `json:"updated"`
+	TurnStart          time.Time  `json:"turnStart"`
+	Cost               float64    `json:"cost"`
+	Turns              int        `json:"turns"`
+	AutoTurns          int        `json:"autoTurns"`
+	InTok              int64      `json:"inTok"`
+	OutTok             int64      `json:"outTok"`
+	ToolCalls          int        `json:"toolCalls"`
+	Inbox              []string   `json:"inbox"`
+	Connectors         []string   `json:"connectors"` // nil = all enabled
+	NeedsContinue      bool       `json:"needsContinue"`
+	ResumeAfterRestart bool       `json:"resumeAfterRestart"`
+	Completed          bool       `json:"completed"`
+	Log                []LogEntry `json:"log"`
 
 	cmd         *exec.Cmd
 	interrupted bool
@@ -878,6 +879,10 @@ func (a *App) loadState() {
 		if ag.Status == "running" || ag.Status == "waiting" || ag.Status == "queued" {
 			ag.Status = "paused"
 			ag.NeedsContinue = ag.SessionID != ""
+		}
+		if ag.ResumeAfterRestart { // paused by an update: continue automatically
+			ag.ResumeAfterRestart = false
+			ag.Status = "queued"
 		}
 		a.agents[ag.ID] = ag
 		a.order = append(a.order, ag.ID)
