@@ -28,7 +28,7 @@ var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.7.1" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.7.2" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -254,6 +254,7 @@ func (a *App) routes() http.Handler {
 	a.libraryRoutes(mux)
 	a.deployRoutes(mux)
 	a.voiceRoutes(mux)
+	a.selftestRoutes(mux)
 	a.connectorRoutes(mux)
 	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })

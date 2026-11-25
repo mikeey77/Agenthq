@@ -148,7 +148,8 @@ textarea.inp{resize:vertical;min-height:110px;line-height:1.5}
 @keyframes spin{to{transform:rotate(360deg)}}
 .reactor .core{position:absolute;inset:88px;border-radius:30px;background:rgba(var(--a),.08);border:1px solid var(--line2);box-shadow:var(--glow)}
 .reactor .core .bav{position:absolute;inset:0;width:100%;height:100%;background:none;box-shadow:none}
-.wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
+.wgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px;row-gap:0;grid-auto-rows:4px;grid-auto-flow:row dense;align-items:start}
+.wgrid>.w,.wgrid>.add-tile{margin-bottom:16px}
 .w{grid-column:span var(--w,1);min-width:0}
 .w.drag{opacity:.4}
 .w.over{outline:2px dashed rgba(var(--a),.6);outline-offset:3px;border-radius:var(--r3)}
@@ -577,6 +578,13 @@ a.btn{text-decoration:none}
 @media(prefers-reduced-motion:reduce){.uchart rect,.skill,.note{animation:none}}
 .rules{display:flex;flex-wrap:wrap;gap:6px}.rule{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:8px;background:var(--s2);border:1px solid var(--edge);font-size:12px}.rule .pb{width:22px;height:22px}
 .smart{display:flex;align-items:center;gap:6px;margin-top:8px;padding:0;border:0;background:none;color:var(--dim);font:inherit;font-size:12px;cursor:pointer}.smart:hover{color:var(--acc)}.smart .ic{width:13px;height:13px}
+.tchead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tchead>div{flex:1;min-width:240px}.tchead p{margin:2px 0 0}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:14px}
+.ck{display:grid;grid-template-columns:32px minmax(0,1fr) 22px;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;background:var(--s2);border:1px solid var(--edge);animation:pop .35s calc(var(--n)*45ms) both}
+.ck .ci{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:rgba(var(--a),.1);color:var(--dim)}.ck .ci .ic{width:16px;height:16px}
+.ck b{font-size:13px;display:block;color:var(--hi)}.ck small{font-size:11.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ck .cs .ic{width:18px;height:18px}.ck.ok .cs{color:var(--ok)}.ck.bad{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.ck.bad .cs{color:var(--bad)}.ck.opt .cs{color:var(--muted)}
+.tcwhat{margin-top:12px;font-size:13px;color:var(--dim)}.tcwhat summary{cursor:pointer;color:var(--acc)}.tcwhat ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 /* slash menu */
 #slash{position:fixed;z-index:400;display:none;width:360px;max-height:320px;overflow:auto;padding:5px;border-radius:12px;background:rgb(var(--b));border:1px solid var(--edge2);box-shadow:0 16px 40px rgba(0,0,0,.45)}
 #slash.show{display:block}
@@ -698,7 +706,9 @@ a.btn{text-decoration:none}
 <div class="toast" id="toast" role="status"></div>
 <script>
 const I18N={
-en:{smart_hint:"Tired of approving? Let agents decide themselves (Smart mode)",smart_on:"Smart mode on: agents only ask before risky steps",ar_t:"Always allowed",ar_d:"Agents run these without asking. Read-only commands (dir, Get-ChildItem, git status, npm test …) never ask anyway.",nav_library:"Library",nav_library_full:"Library",lib_sub:"What your agents have learned: reusable skills and memory per project.",nav_usage:"Usage",nav_usage_full:"Usage",usage_sub:"Where your Claude usage goes, per day and per project.",
+en:{tc_t:"Test center",tc_d:"Check that everything works, or let an agent run a full test of all features.",tc_check:"Run checks",tc_full:"Full test mission",tc_ok:"All checks passed",tc_bad:"{n} check(s) need attention",tc_started:"Self-test started. Watch the agents, answer its question here or on Telegram.",tc_what:"What does the full test do?",
+ tc_s1:"Creates the project \"HQ self-test\" with a task on the board.",tc_s2:"Starts a helper agent that writes a file and messages back (teamwork).",tc_s3:"Opens example.com in the in-app browser and sends a screenshot to Telegram.",tc_s4:"Asks you a 1️⃣/2️⃣ question: answer in the app or on Telegram.",tc_s5:"Saves a memory note and a skill (see Library).",tc_s6:"Checks the helper's file, moves the task to Check, and a review agent checks the work.",tc_s7:"Ends with a ✅/❌ checklist, also on Telegram as a picture card.",
+ ck_claude:"Claude Code",ck_mcp:"Agent connection (MCP)",ck_workspace:"Workspace folder",ck_telegram:"Telegram",ck_browser:"Browser engine",ck_git:"Git",ck_node:"Node.js",ck_github:"GitHub",ck_netlify:"Netlify",ck_voice:"Voice",sl_test:"Run the full self-test",smart_hint:"Tired of approving? Let agents decide themselves (Smart mode)",smart_on:"Smart mode on: agents only ask before risky steps",ar_t:"Always allowed",ar_d:"Agents run these without asking. Read-only commands (dir, Get-ChildItem, git status, npm test …) never ask anyway.",nav_library:"Library",nav_library_full:"Library",lib_sub:"What your agents have learned: reusable skills and memory per project.",nav_usage:"Usage",nav_usage_full:"Usage",usage_sub:"Where your Claude usage goes, per day and per project.",
  sk_t:"Skills",sk_new:"New skill",sk_d:"A proven way to do a kind of task. Every agent sees the list and loads a skill when it fits.",sk_used:"used",sk_when:"When to use it",sk_when_ph:"e.g. When a Vite app has to go online",sk_name_ph:"e.g. Deploy a Vite site to Netlify",sk_steps:"Steps (markdown)",sk_empty:"No skills yet",sk_empty_d:"Agents save a skill when they solve something worth repeating. You can also write one yourself.",
  mem_t:"Memory",mem_d:"Every agent in this project reads these notes before it starts.",mem_general:"General memory",mem_general_d:"Things every agent should know, in every project.",mem_projects:"Project memory",mem_projects_d:"Decisions, preferences and lessons per project.",mem_notes:"notes",mem_add:"Add a note and press Enter",mem_empty:"Nothing remembered yet.",
  nk_decision:"Decision",nk_preference:"Preference",nk_lesson:"Lesson",nk_fact:"Fact",
@@ -721,7 +731,7 @@ en:{smart_hint:"Tired of approving? Let agents decide themselves (Smart mode)",s
  w_s_hello:"Welcome",w_s_claude:"Claude",w_s_agents:"Agents",w_s_tg:"Telegram",w_s_gh:"GitHub",w_s_done:"Ready",w_hello_d:"Agent HQ runs a team of AI agents on your Claude subscription. Let's set it up in a few minutes.",
  w_f1:"Missions",w_f1d:"Say what you want; a lead agent plans it and builds a team.",w_f2:"Teams",w_f2d:"Agents create helpers, talk to each other and report back.",w_f3:"Telegram",w_f3d:"Chat with your agents and answer questions from your phone.",w_f4:"Safe",w_f4d:"Agents ask before risky steps. You can pause everything anytime.",
  w_claude_d2:"Agent HQ uses Claude Code, which runs on your Claude subscription. No API costs.",w_missing_d:"Install it with the steps below, then check again.",w_c1:"Install Node.js (LTS) from",w_c2:"Open a terminal and install Claude Code:",w_c3:"Start it once and log in with your Claude account:",w_c4:"Come back here and press Check again.",w_c_path:"Claude installed somewhere else?",w_check_again:"Check again",
- w_agents_d:"Choose how freely agents may work and where their files go. You can change this later in Settings.",
+ wz_agents_d:"Choose how freely agents may work and where their files go. You can change this later in Settings.",
  w_tg_d2:"Telegram becomes your remote control: chat with agents, start missions, answer questions and get picture updates.",w_t1:"Open",w_t2:"Send /newbot, pick a name, and copy the token you get.",w_t3:"Paste the token here:",w_t_check:"Check",w_t4:"Open your bot and press Start.",w_t_linked:"Linked!",w_t_linked_d:"Your chat is connected.",w_t_test:"Send test",w_t_wait:"Waiting for /start…",w_t_wait_d:"Open {b} in Telegram and press Start.",w_tg_later:"You can also do this later under Connectors → Telegram.",
  w_gh:"GitHub (optional)",w_gh_d:"Lets agents create repositories and push their work. Repos are private unless you say otherwise.",w_g1:"Create a fine-grained token:",w_g2:"Give it access to All repositories, with Administration and Contents set to Read and write.",w_g3:"Paste it here:",w_g_ok:"Connected as",w_optional:"Optional. You can add it later in Settings.",
  w_ready_d2:"Everything is set. How do you want to start?",w_try1:"Run a test mission",w_try1d:"A small real mission to see an agent work. Takes about a minute.",w_try2:"Open the demo",w_try2d:"A second window with fake agents to explore every screen safely.",w_try3:"Go to the dashboard",w_try3d:"Start with your own mission.",w_tips:"Tips",w_tip1:"command palette",w_tip2:"all commands",w_tip3:"type /help to your bot",
@@ -786,9 +796,11 @@ en:{smart_hint:"Tired of approving? Let agents decide themselves (Smart mode)",s
  s_startup:"Startup",autostart:"Start Agent HQ with Windows",autostart_d:"Runs in the background so Telegram keeps working",s_setup:"Setup",run_setup:"Run setup again",quit:"Quit Agent HQ",saved:"Saved",
  w_hello:"Welcome to Agent HQ",w_lang:"Which language do you want?",w_claude:"Find Claude Code",w_claude_d:"Agents run on your own Claude Code login and subscription. No API key needed.",
  w_found:"Found Claude Code at",w_missing:"Claude Code isn't installed or isn't on your PATH. Install it, run claude once to log in, then test again.",
- w_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Press Ctrl K anywhere to give your first mission.",
+ wz_agents:"How much can agents do on their own?",w_tg:"Get messages on your phone",w_tg_d:"Optional. You can also set this up later under Connectors.",w_ready:"Ready",w_ready_d:"Press Ctrl K anywhere to give your first mission.",
  next:"Next",back:"Back",skip:"Skip",finish:"Open Agent HQ",answer_sent:"Sent",now:"now"},
-nl:{smart_hint:"Klaar met toestaan? Laat agents zelf beslissen (Slim-modus)",smart_on:"Slim-modus aan: agents vragen alleen nog bij risico",ar_t:"Altijd toegestaan",ar_d:"Agents doen deze zonder te vragen. Alleen-lezen commando's (dir, Get-ChildItem, git status, npm test …) vragen sowieso nooit.",nav_library:"Bibliotheek",nav_library_full:"Bibliotheek",lib_sub:"Wat je agents geleerd hebben: herbruikbare vaardigheden en geheugen per project.",nav_usage:"Gebruik",nav_usage_full:"Gebruik",usage_sub:"Waar je Claude-gebruik naartoe gaat, per dag en per project.",
+nl:{tc_t:"Testcentrum",tc_d:"Controleer of alles werkt, of laat een agent alle functies in één keer testen.",tc_check:"Controles uitvoeren",tc_full:"Volledige testmissie",tc_ok:"Alle controles geslaagd",tc_bad:"{n} controle(s) hebben aandacht nodig",tc_started:"Zelftest gestart. Kijk mee bij Agents en beantwoord zijn vraag hier of op Telegram.",tc_what:"Wat doet de volledige test?",
+ tc_s1:"Maakt het project \"HQ self-test\" met een taak op het bord.",tc_s2:"Start een helper-agent die een bestand schrijft en terug bericht stuurt (samenwerken).",tc_s3:"Opent example.com in de app-browser en stuurt een screenshot naar Telegram.",tc_s4:"Stelt je een 1️⃣/2️⃣-vraag: antwoord in de app of op Telegram.",tc_s5:"Bewaart een geheugennotitie en een vaardigheid (zie Bibliotheek).",tc_s6:"Controleert het bestand van de helper, zet de taak op Nakijken, en een review-agent controleert het werk.",tc_s7:"Eindigt met een ✅/❌-checklist, ook op Telegram als plaatje.",
+ ck_claude:"Claude Code",ck_mcp:"Agent-verbinding (MCP)",ck_workspace:"Werkmap",ck_telegram:"Telegram",ck_browser:"Browser-engine",ck_git:"Git",ck_node:"Node.js",ck_github:"GitHub",ck_netlify:"Netlify",ck_voice:"Spraak",sl_test:"Volledige zelftest draaien",smart_hint:"Klaar met toestaan? Laat agents zelf beslissen (Slim-modus)",smart_on:"Slim-modus aan: agents vragen alleen nog bij risico",ar_t:"Altijd toegestaan",ar_d:"Agents doen deze zonder te vragen. Alleen-lezen commando's (dir, Get-ChildItem, git status, npm test …) vragen sowieso nooit.",nav_library:"Bibliotheek",nav_library_full:"Bibliotheek",lib_sub:"Wat je agents geleerd hebben: herbruikbare vaardigheden en geheugen per project.",nav_usage:"Gebruik",nav_usage_full:"Gebruik",usage_sub:"Waar je Claude-gebruik naartoe gaat, per dag en per project.",
  sk_t:"Vaardigheden",sk_new:"Nieuwe vaardigheid",sk_d:"Een bewezen manier om een soort taak te doen. Elke agent ziet de lijst en laadt een vaardigheid als die past.",sk_used:"gebruikt",sk_when:"Wanneer gebruiken",sk_when_ph:"bv. Als een Vite-app online moet",sk_name_ph:"bv. Vite-site naar Netlify",sk_steps:"Stappen (markdown)",sk_empty:"Nog geen vaardigheden",sk_empty_d:"Agents bewaren een vaardigheid als ze iets oplossen dat het herhalen waard is. Je kunt er ook zelf een schrijven.",
  mem_t:"Geheugen",mem_d:"Elke agent in dit project leest deze notities voordat hij begint.",mem_general:"Algemeen geheugen",mem_general_d:"Wat elke agent moet weten, in elk project.",mem_projects:"Projectgeheugen",mem_projects_d:"Beslissingen, voorkeuren en lessen per project.",mem_notes:"notities",mem_add:"Typ een notitie en druk Enter",mem_empty:"Nog niets onthouden.",
  nk_decision:"Beslissing",nk_preference:"Voorkeur",nk_lesson:"Les",nk_fact:"Feit",
@@ -811,7 +823,7 @@ nl:{smart_hint:"Klaar met toestaan? Laat agents zelf beslissen (Slim-modus)",sma
  w_s_hello:"Welkom",w_s_claude:"Claude",w_s_agents:"Agents",w_s_tg:"Telegram",w_s_gh:"GitHub",w_s_done:"Klaar",w_hello_d:"Agent HQ draait een team AI-agents op je Claude-abonnement. We zetten het in een paar minuten op.",
  w_f1:"Missies",w_f1d:"Zeg wat je wilt; een leider-agent plant het en maakt een team.",w_f2:"Teams",w_f2d:"Agents maken helpers, praten met elkaar en rapporteren terug.",w_f3:"Telegram",w_f3d:"Chat met je agents en beantwoord vragen vanaf je telefoon.",w_f4:"Veilig",w_f4d:"Agents vragen eerst bij risico's. Je kunt alles altijd pauzeren.",
  w_claude_d2:"Agent HQ gebruikt Claude Code, dat op je Claude-abonnement draait. Geen API-kosten.",w_missing_d:"Installeer het met de stappen hieronder en controleer opnieuw.",w_c1:"Installeer Node.js (LTS) via",w_c2:"Open een terminal en installeer Claude Code:",w_c3:"Start het één keer en log in met je Claude-account:",w_c4:"Kom terug en druk op Opnieuw controleren.",w_c_path:"Claude ergens anders geïnstalleerd?",w_check_again:"Opnieuw controleren",
- w_agents_d:"Kies hoe vrij agents mogen werken en waar hun bestanden komen. Later aan te passen bij Instellingen.",
+ wz_agents_d:"Kies hoe vrij agents mogen werken en waar hun bestanden komen. Later aan te passen bij Instellingen.",
  w_tg_d2:"Telegram wordt je afstandsbediening: chat met agents, start missies, beantwoord vragen en krijg updates met plaatjes.",w_t1:"Open",w_t2:"Stuur /newbot, kies een naam en kopieer de token die je krijgt.",w_t3:"Plak de token hier:",w_t_check:"Controleren",w_t4:"Open je bot en druk op Start.",w_t_linked:"Gekoppeld!",w_t_linked_d:"Je chat is verbonden.",w_t_test:"Test sturen",w_t_wait:"Wachten op /start…",w_t_wait_d:"Open {b} in Telegram en druk op Start.",w_tg_later:"Kan ook later via Connectors → Telegram.",
  w_gh:"GitHub (optioneel)",w_gh_d:"Laat agents repositories maken en hun werk pushen. Repo's zijn privé, tenzij je anders zegt.",w_g1:"Maak een fine-grained token:",w_g2:"Geef toegang tot All repositories, met Administration en Contents op Read and write.",w_g3:"Plak hem hier:",w_g_ok:"Verbonden als",w_optional:"Optioneel. Kan later bij Instellingen.",
  w_ready_d2:"Alles staat klaar. Hoe wil je beginnen?",w_try1:"Testmissie draaien",w_try1d:"Een kleine echte missie om een agent te zien werken. Duurt ongeveer een minuut.",w_try2:"Demo openen",w_try2d:"Een tweede venster met nep-agents om elk scherm veilig te verkennen.",w_try3:"Naar het dashboard",w_try3d:"Begin met je eigen missie.",w_tips:"Tips",w_tip1:"commandopalet",w_tip2:"alle commando's",w_tip3:"typ /help naar je bot",
@@ -876,7 +888,7 @@ nl:{smart_hint:"Klaar met toestaan? Laat agents zelf beslissen (Slim-modus)",sma
  s_startup:"Opstarten",autostart:"Agent HQ starten met Windows",autostart_d:"Draait op de achtergrond zodat Telegram blijft werken",s_setup:"Setup",run_setup:"Setup opnieuw doen",quit:"Agent HQ afsluiten",saved:"Opgeslagen",
  w_hello:"Welkom bij Agent HQ",w_lang:"Welke taal wil je?",w_claude:"Claude Code zoeken",w_claude_d:"Agents draaien op je eigen Claude Code-login en abonnement. Geen API-key nodig.",
  w_found:"Claude Code gevonden in",w_missing:"Claude Code is niet geïnstalleerd of staat niet in je PATH. Installeer het, start claude één keer om in te loggen en test opnieuw.",
- w_agents:"Hoeveel mogen agents zelf doen?",w_tg:"Berichten op je telefoon",w_tg_d:"Optioneel. Je kunt dit ook later instellen bij Connectors.",w_ready:"Klaar",w_ready_d:"Druk overal op Ctrl K om je eerste missie te geven.",
+ wz_agents:"Hoeveel mogen agents zelf doen?",w_tg:"Berichten op je telefoon",w_tg_d:"Optioneel. Je kunt dit ook later instellen bij Connectors.",w_ready:"Klaar",w_ready_d:"Druk overal op Ctrl K om je eerste missie te geven.",
  next:"Volgende",back:"Terug",skip:"Overslaan",finish:"Agent HQ openen",answer_sent:"Verstuurd",now:"nu"}
 };
 const SVG={home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',bot:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/>',alert:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
@@ -1037,9 +1049,13 @@ function renderWidgets(){
       <div class="wtools">${[1,2,3,4].map(n=>`<button class="wt ${(w.w||1)===n?'on':''}" title="${t('size')} ${n}" onclick="sizeW('${w.id}',${n})">${n}</button>`).join('')}<button class="wt" title="${t('remove_w')}" onclick="removeW('${w.id}')">${ic('x')}</button></div></header><div class="body" id="wb-${w.id}"></div></div></div>`).join('')
       +`<button class="add-tile" onclick="openAddWidget()">${ic('plus')}${t('add_widget')}</button>`;
     L.forEach(mountW);dragSetup();
+    if(window.ResizeObserver){if(window._wro)_wro.disconnect();window._wro=new ResizeObserver(()=>packGrid());grid.querySelectorAll('.w>.card').forEach(c=>_wro.observe(c))}
   }
-  L.forEach(updateW);
+  L.forEach(updateW);packGrid();
 }
+// masonry: every widget takes exactly the rows its content needs, so no empty holes
+function packGrid(){const g=$('wgrid');if(!g)return;cancelAnimationFrame(packGrid.f);packGrid.f=requestAnimationFrame(()=>{
+  g.querySelectorAll(':scope>.w,:scope>.add-tile').forEach(el=>{const c=el.classList.contains('w')?el.firstElementChild:el;if(!c)return;const h=c.getBoundingClientRect().height;el.style.gridRowEnd='span '+Math.max(1,Math.ceil((h+16)/4))})})}
 function mountW(w){const b=$('wb-'+w.id);
   if(w.type==='terminal')b.innerHTML=`<div class="term"><div class="term-out" id="to-${w.id}"></div><div class="term-in"><label>hq ›</label><input data-term="1" autocomplete="off" spellcheck="false" placeholder="${esc(t('cmd_ph'))}"></div></div>`;
   if(w.type==='notes'){b.innerHTML=`<div class="notes"><textarea placeholder="${esc(t('notes_ph'))}">${esc(w.text||'')}</textarea></div>`;b.querySelector('textarea').oninput=e=>{w.text=e.target.value;saveLayout()}}
@@ -1238,6 +1254,8 @@ async function renderSettings(){const c=await api('/api/config');const u=(S&&S.u
    ${row(t('language'),'',segc('lang',c.lang,[['en','English'],['nl','Nederlands']]))}
    ${row(t('accent'),'',segc('accent',c.accent||'orange',[['orange','Orange'],['green','Green'],['blue','Blue'],['amber','Amber'],['red','Red']]))}
    ${row(t('theme'),'',segc('theme',c.theme==='light'?'light':'dark',[['dark',t('dark')],['light',t('light')]]))}</div>
+  <div class="sec-t">${t('tc_t')}</div><div class="card tcenter"><div class="tchead"><div><p class="hint" style="margin:0">${t('tc_d')}</p></div><button class="btn" onclick="runChecks()">${ic('refresh')}${t('tc_check')}</button><button class="btn pri" onclick="runSelfTest()">${ic('rocket')}${t('tc_full')}</button></div><div id="tcList">${CHECKS?checksHTML(CHECKS):''}</div>
+   <details class="tcwhat"><summary>${t('tc_what')}</summary><ol>${[1,2,3,4,5,6,7].map(n=>`<li>${t('tc_s'+n)}</li>`).join('')}</ol></details></div>
   <div class="sec-t">${t('s_claude')}</div><div class="card">
    ${row(t('claude_path'),`<span id="sClaudeRes">${S&&S.claudePath?t('found')+': '+esc(S.claudePath):t('claude_path_d')}</span>`,`<input class="inp" id="sClaude" value="${esc(c.claudePath)}" placeholder="${esc(t('claude_path_d'))}" onchange="saveCfg({claudePath:this.value.trim()},false)"><button class="btn sm" onclick="testClaude('sClaude','sClaudeRes')">${t('test')}</button>`)}
    ${row(t('def_model'),'',segc('defaultModel',c.defaultModel||'',[['',t('model_default')],['opus','Opus'],['sonnet','Sonnet'],['haiku','Haiku']]))}</div>
@@ -1279,7 +1297,7 @@ function renderWizard(){const s=wz.step,mood=['wave s-idle','s-queued','s-runnin
    ${wz.claudeOk?'':`<ol class="wlist"><li>${t('w_c1')} <a href="https://nodejs.org" target="_blank">nodejs.org</a></li><li>${t('w_c2')}<div class="code"><code>npm install -g @anthropic-ai/claude-code</code><button class="btn sm ghost" onclick="copyTxt('npm install -g @anthropic-ai/claude-code')">${ic('copy')}</button></div></li><li>${t('w_c3')}<div class="code"><code>claude</code><button class="btn sm ghost" onclick="copyTxt('claude')">${ic('copy')}</button></div></li><li>${t('w_c4')}</li></ol>`}
    <details ${wz.claudeOk?'':'open'}><summary class="hint">${t('w_c_path')}</summary>${fld('wzClaude',t('claude_path'),wz.claudePath,'text',`placeholder="${t('claude_path_d')}"`)}</details>
    <p><button class="btn" onclick="wzTestClaude()">${ic('refresh')}${t('w_check_again')}</button></p>`;
-  if(s===2)h+=`<h2>${t('w_agents')}</h2><p class="lead">${t('w_agents_d')}</p></div></div>${permRadio('wzPerm',wz.perm)}${fld('wzWs',t('workspace')+` <small>${t('workspace_d')}</small>`,wz.workspace)}`;
+  if(s===2)h+=`<h2>${t('wz_agents')}</h2><p class="lead">${t('wz_agents_d')}</p></div></div>${permRadio('wzPerm',wz.perm)}${fld('wzWs',t('workspace')+` <small>${t('workspace_d')}</small>`,wz.workspace)}`;
   if(s===3){const b=wz.bot;h+=`<h2>${t('w_tg')}</h2><p class="lead">${t('w_tg_d2')}</p></div></div>
    <ol class="wlist"><li>${t('w_t1')} <a class="btn sm" href="https://t.me/BotFather" target="_blank">${ic('external')}@BotFather</a></li><li>${t('w_t2')}</li><li>${t('w_t3')}${fld('wzTok','',wz.tok,'password','placeholder="123456789:ABC-DEF…" spellcheck="false"')}<button class="btn" onclick="wzCheckTg()">${ic('check')}${t('w_t_check')}</button></li>
     <li>${t('w_t4')} ${b?`<a class="btn sm pri" href="https://t.me/${esc(b.bot)}?start=hq" target="_blank">${ic('send')}@${esc(b.bot)}</a>`:''}</li></ol>
@@ -1305,7 +1323,7 @@ async function wzCheckTg(){wzRead();if(!wz.tok){toast(t('w_t3'));return}try{wz.b
 function wzWaitLink(){clearInterval(wz.poll);wz.poll=setInterval(async()=>{if(wz.step!==3){clearInterval(wz.poll);return}await refresh();if(S.telegram.linked){clearInterval(wz.poll);wz.bot.linked=true;renderWizard();confetti()}},2000)}
 async function wzCheckGh(){wzRead();try{const r=await api('/api/github/check',{Token:wz.gh});wz.ghLogin=r.login;renderWizard()}catch(e){toast(e.message)}}
 async function wzFinish(next){wzRead();await api('/api/config',{lang:wz.lang,claudePath:wz.claudePath,permissionMode:wz.perm,workspace:wz.workspace,setupDone:true}).catch(()=>{});hide('wizard');clearInterval(wz.poll);await refresh();
-  if(next==='test'){try{const r=await api('/api/mission',{Mission:t('w_test_mission'),Name:'pilot'});toast(t('mission_started')+': '+r.name);go('agents');setTimeout(()=>openDrawer(r.id),400)}catch(e){toast(e.message)}}
+  if(next==='test'){try{const r=await api('/api/selftest',{Action:'mission'});toast(t('mission_started')+': '+r.name);go('agents');setTimeout(()=>openDrawer(r.id),400)}catch(e){toast(e.message)}}
   if(next==='demo'){try{await api('/api/demo',{});toast(t('w_demo_open'))}catch(e){toast(e.message)}}
   confetti()}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const cols=['rgb(var(--a))','#3ecf8e','#6aa7ff','#f5c451','#c792ea'];
@@ -1357,6 +1375,13 @@ function renderSchEdit(){const s=SE,P=S.projects||[];
    <div class="actions">${s.id?`<button class="btn danger ghost" style="margin-right:auto" onclick="schAct('${s.id}','delete');hide('genModal')">${ic('trash')}${t('del')}</button>`:''}<button class="btn ghost" onclick="hide('genModal')">${t('cancel')}</button><button class="btn pri" onclick="saveSchedule()">${ic('check')}${t('save')}</button></div>`)}
 function schSync(){const s=SE;if($('seM'))s.mission=$('seM').value;if($('seN'))s.name=$('seN').value;if($('seT'))s.time=$('seT').value;if($('seD'))s.date=$('seD').value;if($('seE'))s.every=+$('seE').value;if($('seP'))s.project=$('seP').value}
 async function saveSchedule(){schSync();try{await api('/api/schedule',{Action:'save',S:SE});hide('genModal');toast(t('saved'));await refresh();resetCache();renderSchedules()}catch(e){toast(e.message)}}
+
+/* ---------- test center ---------- */
+let CHECKS=null;
+const CK_IC={claude:'term',mcp:'plug',workspace:'folder',telegram:'send',browser:'win',git:'code',node:'box',github:'code',netlify:'globe',voice:'mic'};
+function checksHTML(L){return `<div class="checks">${L.map((c,i)=>`<div class="ck ${c.ok===true?'ok':c.ok===false?'bad':'opt'}" style="--n:${i}"><span class="ci">${ic(CK_IC[c.id]||'check')}</span><div><b>${t('ck_'+c.id)}</b><small>${esc(c.detail||'')}</small></div><span class="cs">${ic(c.ok===true?'check':c.ok===false?'x':'alert')}</span></div>`).join('')}</div>`}
+async function runChecks(){setHTML('tcList',`<div class="wstatus wait"><span class="spin"></span><span>${t('testing')}</span></div>`);try{const r=await api('/api/selftest',{});CHECKS=r.checks;setHTML('tcList',checksHTML(CHECKS));const bad=CHECKS.filter(c=>c.ok===false).length;toast(bad?t('tc_bad').replace('{n}',bad):t('tc_ok'));if(!bad)confetti()}catch(e){toast(e.message)}}
+async function runSelfTest(){try{const r=await api('/api/selftest',{Action:'mission'});toast(t('tc_started'));go('agents');setTimeout(()=>openDrawer(r.id),500)}catch(e){toast(e.message)}}
 
 /* ---------- library: skills + memory ---------- */
 const NK={decision:['check','#6aa7ff'],preference:['heart','#ff8fa3'],lesson:['bulb','#f5c451'],fact:['book','#9aa3b2']};
@@ -1524,7 +1549,7 @@ const SLASH=[
  {c:'pause',a:'<agent|all>',d:'sl_pause',i:'pause',ag:true},{c:'resume',a:'<agent|all>',d:'sl_resume',i:'play',ag:true},
  {c:'stop',a:'<agent|all>',d:'sl_stop',i:'stop',ag:true},{c:'delete',a:'<agent>',d:'sl_delete',i:'trash',ag:true},
  {c:'list',d:'sl_list',i:'list'},{c:'usage',d:'sl_usage',i:'gauge'},{c:'clear done',d:'sl_clear',i:'check'},{c:'help',d:'sl_help',i:'book'},
- {c:'browser',d:'sl_browser',i:'win',ui:()=>go('browser')},{c:'projects',d:'sl_projects',i:'kanban',ui:()=>go('projects')},{c:'schedules',d:'sl_schedules',i:'clock',ui:()=>go('schedules')},{c:'library',d:'sl_library',i:'bulb',ui:()=>go('library')},{c:'usage',d:'sl_usage2',i:'chart',ui:()=>go('usage')},{c:'new',d:'sl_new',i:'target',ui:()=>openMission()},
+ {c:'browser',d:'sl_browser',i:'win',ui:()=>go('browser')},{c:'projects',d:'sl_projects',i:'kanban',ui:()=>go('projects')},{c:'schedules',d:'sl_schedules',i:'clock',ui:()=>go('schedules')},{c:'library',d:'sl_library',i:'bulb',ui:()=>go('library')},{c:'test',d:'sl_test',i:'rocket',ui:()=>runSelfTest()},{c:'usage',d:'sl_usage2',i:'chart',ui:()=>go('usage')},{c:'new',d:'sl_new',i:'target',ui:()=>openMission()},
  {c:'connectors',d:'sl_connectors',i:'plug',ui:()=>go('connectors')},{c:'settings',d:'sl_settings',i:'wrench',ui:()=>go('settings')},
  {c:'theme',d:'sl_theme',i:'palette',ui:()=>saveCfg({theme:document.documentElement.dataset.theme==='light'?'dark':'light'},false)}];
 let SL={el:null,items:[],sel:0};

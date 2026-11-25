@@ -7,6 +7,7 @@ import (
 
 var dict = map[string]map[string]string{
 	"en": {
+		"tg_selftest":           "Self-test started (%s). It will ask you a 1️⃣/2️⃣ question here, open a web page and start a helper. You get a checklist at the end.",
 		"allow_always":          "Always allow",
 		"allow_agent":           "Trust this agent",
 		"voice_needed":          "Voice messages are turned into text on your own PC (free, private). That needs a one-time download of about 235 MB.",
@@ -140,6 +141,7 @@ var dict = map[string]map[string]string{
 		"continue":              "You were paused by the user and are now resumed. Continue where you left off.",
 	},
 	"nl": {
+		"tg_selftest":           "Zelftest gestart (%s). Je krijgt hier een 1️⃣/2️⃣-vraag, hij opent een webpagina en start een helper. Aan het eind krijg je een checklist.",
 		"allow_always":          "Altijd toestaan",
 		"allow_agent":           "Deze agent vertrouwen",
 		"voice_needed":          "Spraakberichten worden op je eigen pc omgezet naar tekst (gratis en privé). Daarvoor is eenmalig een download van ongeveer 235 MB nodig.",

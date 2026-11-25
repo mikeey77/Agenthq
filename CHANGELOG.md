@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.2
+
+- **Dashboard without holes.** Widgets now stack like a masonry wall: each one takes exactly the height it needs and smaller widgets fill the gaps.
+- Fixed the Agents widget title ("How much can agents do on their own?").
+- **Test center** in Settings: checks Claude Code, the agent connection, workspace, Telegram, browser, Git, Node.js, GitHub, Netlify and voice, and a **full test mission** that uses projects, teamwork, the browser, a 1️⃣/2️⃣ question, memory, skills and the review agent. Also via /test on Telegram.
+
 ## 2.7.1
 
 - **Far fewer permission questions.** Read-only commands (dir, Get-ChildItem, git status, npm test, builds …) and read-only tools are allowed without asking.
