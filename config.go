@@ -86,6 +86,9 @@ func loadConfig() Config {
 	if c.Lang == "" {
 		c.Lang = "en"
 	}
+	if c.UpdateRepo == "" || c.UpdateRepo == "mikeey77/agent-hq" { // the repo is called Agenthq
+		c.UpdateRepo = defaultUpdateRepo
+	}
 	if c.PermVersion < 2 { // v2.3: agents act on their own and ask only when it matters
 		c.PermissionMode, c.PermVersion = "full", 2
 	}

@@ -6,8 +6,8 @@
 
 Give a mission, and a lead agent splits the work, creates its own helper agents and asks you when a decision is yours to make. Runs on your own Claude Code login: your subscription, no API key.
 
-[![Build](https://github.com/mikeey77/agent-hq/actions/workflows/release.yml/badge.svg)](https://github.com/mikeey77/agent-hq/actions/workflows/release.yml)
-[![Release](https://img.shields.io/github/v/release/mikeey77/agent-hq)](https://github.com/mikeey77/agent-hq/releases/latest)
+[![Build](https://github.com/mikeey77/Agenthq/actions/workflows/release.yml/badge.svg)](https://github.com/mikeey77/Agenthq/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/mikeey77/Agenthq)](https://github.com/mikeey77/Agenthq/releases/latest)
 ![Windows](https://img.shields.io/badge/platform-Windows-2271B3)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -17,7 +17,7 @@ Give a mission, and a lead agent splits the work, creates its own helper agents 
 
 ## Download
 
-1. Download **`AgentHQ-windows.zip`** from the [latest release](https://github.com/mikeey77/agent-hq/releases/latest).
+1. Download **`AgentHQ-windows.zip`** from the [latest release](https://github.com/mikeey77/Agenthq/releases/latest).
 2. Unzip it and run `AgentHQ.exe`. Windows SmartScreen may warn because the exe isn't signed: choose **More info → Run anyway**.
 3. The setup asks for your language, finds Claude Code and (optionally) links Telegram.
 

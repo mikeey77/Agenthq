@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-const defaultUpdateRepo = "mikeey77/agent-hq"
+const defaultUpdateRepo = "mikeey77/Agenthq"
 
 type UpdateInfo struct {
 	Current   string    `json:"current"`
