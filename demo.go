@@ -141,7 +141,7 @@ func (a *App) seedDemo() {
 	}()
 	a.decisions = []*Decision{
 		{ID: "d1", AgentID: "a4", AgentName: "probe", Kind: "decision", Question: "Which test framework should I use for the parser?", Detail: "Vitest is faster and works with Vite; Jest has more examples online.", Options: []string{"Vitest", "Jest", "Both (compare)"}, Created: ago(1), Status: "pending", ch: make(chan string, 1)},
-		{ID: "d2", AgentID: "a3", AgentName: "forge", Kind: "permission", Question: "forge wants to use Bash", Detail: "npm install tesseract.js@6 sharp --save", Options: []string{"Allow", "Deny"}, Created: ago(0.4), Status: "pending", ch: make(chan string, 1)},
+		{ID: "d2", AgentID: "a3", AgentName: "forge", Kind: "permission", Question: "forge wants to use PowerShell", Detail: "npm install tesseract.js@6 sharp --save", Options: a.permOptions(), Created: ago(0.4), Status: "pending", ch: make(chan string, 1)},
 		{ID: "d0", AgentID: "a1", AgentName: "atlas", Kind: "decision", Question: "Start with Android or a web prototype?", Options: []string{"Android", "Web first"}, Created: ago(4), Status: "answered", Answer: "Web first", AnsweredAt: ago(3), Via: "telegram"},
 	}
 	ev := func(m float64, level, agent, text string) {

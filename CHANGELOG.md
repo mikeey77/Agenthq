@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.1
+
+- **Far fewer permission questions.** Read-only commands (dir, Get-ChildItem, git status, npm test, builds …) and read-only tools are allowed without asking.
+- Permission questions now have **♾️ Always allow** (remembers the command, e.g. "npm install") and **🤖 Trust this agent** (no more questions for that agent). Remembered rules are listed in Settings.
+- A one-click switch to Smart mode on every permission question.
+
 ## 2.7.0
 
 - **Memory per project.** Agents save decisions, your preferences and lessons with `remember`; every new agent in that project reads them first. There is also a general memory for every project. Manage it in the new Library page or via Memory on a project.

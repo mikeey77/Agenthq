@@ -238,7 +238,19 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 		if c := str(in, "command"); c != "" {
 			detail = c
 		}
-		d := a.newDecision(ag, "permission", a.T("perm_q", ag.Name, tool), truncate(detail, 600), []string{a.T("allow"), a.T("deny")})
+		allow := func() (string, bool) {
+			if in == nil {
+				in = map[string]any{}
+			}
+			b, _ := json.Marshal(map[string]any{"behavior": "allow", "updatedInput": in})
+			return string(b), false
+		}
+		if a.autoAllowed(ag, tool, in) { // read-only, remembered or trusted: no question
+			a.addLog(ag, "info", "auto-allowed: "+truncate(detail, 120))
+			a.mu.Unlock()
+			return allow()
+		}
+		d := a.newDecision(ag, "permission", a.T("perm_q", ag.Name, tool), truncate(detail, 600), a.permOptions())
 		a.mu.Unlock()
 		ans, ok := a.waitDecision(r, d, 15*time.Minute)
 		deny := func(msg string) (string, bool) {
@@ -256,12 +268,24 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 			a.mu.Unlock()
 			return deny("No answer from the user in time. Try another approach, or ask with ask_decision.")
 		}
+		switch ans {
+		case a.T("allow_always"), dict["en"]["allow_always"], dict["nl"]["allow_always"]:
+			a.mu.Lock()
+			rule := ruleFor(tool, in)
+			a.cfg.AllowRules = append(a.cfg.AllowRules, rule)
+			_ = saveConfig(a.cfg)
+			a.addLog(ag, "info", "always allowed: "+rule)
+			a.mu.Unlock()
+			return allow()
+		case a.T("allow_agent"), dict["en"]["allow_agent"], dict["nl"]["allow_agent"]:
+			a.mu.Lock()
+			ag.TrustAll = true
+			a.dirty = true
+			a.mu.Unlock()
+			return allow()
+		}
 		if isAllow(ans, a) {
-			if in == nil {
-				in = map[string]any{}
-			}
-			b, _ := json.Marshal(map[string]any{"behavior": "allow", "updatedInput": in})
-			return string(b), false
+			return allow()
 		}
 		if ans == "" {
 			return deny("Cancelled.")

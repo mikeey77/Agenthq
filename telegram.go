@@ -105,7 +105,15 @@ func yesNo(opts []string) bool {
 	return len(opts) == 2 && hasWord(opts[0], yesWords) && hasWord(opts[1], noWords)
 }
 
+// permOpts reports the 4-answer permission question: Allow / Always / Trust agent / Deny.
+func permOpts(opts []string) bool {
+	return len(opts) == 4 && hasWord(opts[0], yesWords) && hasWord(opts[3], noWords)
+}
+
 func optionEmojis(opts []string) []string {
+	if permOpts(opts) {
+		return []string{"✅", "♾️", "🤖", "❌"}
+	}
 	if yesNo(opts) {
 		return []string{"✅", "❌"}
 	}
@@ -120,6 +128,18 @@ func matchOption(opts []string, text string) (int, bool) {
 	}
 	if n, err := strconv.Atoi(t); err == nil && n >= 1 && n <= len(opts) {
 		return n - 1, true
+	}
+	if permOpts(opts) {
+		switch strings.ToLower(t) {
+		case "✅", "✔", "👍", "👌", "y", "j", "yes", "ja", "ok", "oké":
+			return 0, true
+		case "♾", "🔁", "altijd", "always":
+			return 1, true
+		case "🤖":
+			return 2, true
+		case "❌", "✖", "👎", "n", "no", "nee":
+			return 3, true
+		}
 	}
 	if len(opts) == 2 {
 		switch strings.ToLower(t) {
@@ -342,6 +362,9 @@ func (a *App) handleUpdate(um map[string]any) {
 						idx = 0
 					case "👎", "💩", "🤬", "🙈", "😡":
 						idx = 1
+						if permOpts(d.Options) {
+							idx = 3
+						}
 					}
 					if idx >= 0 && idx < len(d.Options) {
 						_ = a.answerDecision(d.ID, d.Options[idx], "telegram")

@@ -21,6 +21,7 @@ type Config struct {
 	PermissionMode string          `json:"permissionMode"` // ask | edits | full
 	PermVersion    int             `json:"permVersion"`
 	GitHubToken    string          `json:"githubToken"`
+	AllowRules     []string        `json:"allowRules"` // "Always allow" answers, e.g. "PowerShell: npm install"
 	TgNoImages     bool            `json:"tgNoImages"`
 	DefaultModel   string          `json:"defaultModel"`
 	MaxAgents      int             `json:"maxAgents"`

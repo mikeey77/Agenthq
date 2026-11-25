@@ -39,6 +39,7 @@ type Agent struct {
 	ToolKind           string     `json:"toolKind"`   // browser web search file edit terminal app agent
 	ToolTarget         string     `json:"toolTarget"` // url host, file name, command, connector
 	ProjectID          string     `json:"projectId,omitempty"`
+	TrustAll           bool       `json:"trustAll,omitempty"` // user said: stop asking for this agent
 	ReviewOf           string     `json:"reviewOf,omitempty"` // lead whose work this agent reviews
 	TaskID             string     `json:"taskId,omitempty"`
 	Files              []string   `json:"files,omitempty"`       // files it created or changed, newest first
