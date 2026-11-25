@@ -130,9 +130,13 @@ func gitPush(dir, full, token, login, msg string) (string, error) {
 	if _, err := gitRun(dir, "remote", "get-url", "origin"); err != nil {
 		_, _ = gitRun(dir, "remote", "add", "origin", url)
 	}
-	auth := base64.StdEncoding.EncodeToString([]byte(login + ":" + token))
+	auth := basicAuth(login, token)
 	out, err := gitRun(dir, "-c", "http.https://github.com/.extraheader=AUTHORIZATION: basic "+auth, "push", "-u", "origin", "HEAD:main")
 	return out, err
+}
+
+func basicAuth(user, pass string) string {
+	return base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
 }
 
 // githubTool runs a github_* tool. Called without a.mu held (it may wait for a decision).

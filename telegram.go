@@ -265,6 +265,22 @@ func (a *App) handleUpdate(um map[string]any) {
 		}
 		data := strings.Split(str(cq, "data"), ":")
 		note := "✓"
+		if len(data) == 2 && data[0] == "v" && data[1] == "install" {
+			_, _ = a.tgCall("answerCallbackQuery", map[string]any{"callback_query_id": str(cq, "id"), "text": a.T("voice_installing")})
+			go func() {
+				a.installVoice()
+				if a.voiceStatus().Ready {
+					a.mu.Lock()
+					p := a.pendingVoice
+					a.pendingVoice = nil
+					a.mu.Unlock()
+					if p != nil {
+						a.processVoice(p)
+					}
+				}
+			}()
+			return
+		}
 		a.mu.Lock()
 		if len(data) == 3 && data[0] == "d" {
 			for _, d := range a.decisions {

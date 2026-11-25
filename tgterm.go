@@ -24,6 +24,7 @@ var tgCommands = []struct{ cmd, en, nl string }{
 	{"projects", "Projects and their progress", "Projecten en voortgang"},
 	{"task", "Add a task: /task glovebox CSV export", "Taak toevoegen: /task glovebox CSV-export"},
 	{"schedules", "Scheduled missions", "Geplande missies"},
+	{"deploy", "Put a project online: /deploy glovebox", "Project online zetten: /deploy glovebox"},
 	{"log", "Last steps of an agent: /log forge", "Laatste stappen van een agent: /log forge"},
 	{"files", "Files an agent changed: /files forge", "Bestanden die een agent wijzigde: /files forge"},
 	{"pause", "Pause an agent or all", "Agent of alles pauzeren"},
@@ -267,6 +268,16 @@ func (a *App) handleMessage(um map[string]any) {
 	}
 	a.mu.Unlock()
 
+	// voice notes: transcribe on this PC, then treat the text as if it was typed
+	if v, ok := msg["voice"].(map[string]any); ok {
+		a.handleVoice(chatID, str(v, "file_id"), msg)
+		return
+	}
+	if v, ok := msg["audio"].(map[string]any); ok && text == "" {
+		a.handleVoice(chatID, str(v, "file_id"), msg)
+		return
+	}
+
 	// 3. photos and files: save them where the agent works and tell the agent
 	fileNote := ""
 	if ph, ok := msg["photo"].([]any); ok && len(ph) > 0 {
@@ -315,6 +326,31 @@ func (a *App) handleMessage(um map[string]any) {
 		reply(a.tgAddTask(rest))
 	case "/schedules", "/schedule":
 		reply(a.tgSchedules(rest))
+	case "/deploy":
+		f := strings.Fields(rest)
+		a.mu.Lock()
+		var p *Project
+		target := ""
+		if len(f) > 0 {
+			if f[len(f)-1] == "pages" || f[len(f)-1] == "netlify" {
+				target = f[len(f)-1]
+				f = f[:len(f)-1]
+			}
+			p = a.project(strings.Join(f, " "))
+		} else if len(a.projects) == 1 {
+			p = a.projects[0]
+		}
+		a.mu.Unlock()
+		if p == nil {
+			reply(a.T("tg_deploy_usage"))
+			return
+		}
+		reply("🚀 " + a.T("tg_deploying", p.Name))
+		go func() {
+			if _, err := a.runDeploy(p, target, func(string) {}); err != nil && !strings.Contains(err.Error(), "already") {
+				return // runDeploy already reports success and failure
+			}
+		}()
 	case "/talk":
 		a.mu.Lock()
 		ag := a.agentByRef(rest)
@@ -401,6 +437,43 @@ func (a *App) handleMessage(um map[string]any) {
 		}
 		a.tgStartMission(chatID, text)
 	}
+}
+
+type voiceMsg struct {
+	chatID, fileID string
+	msg            map[string]any
+}
+
+func (a *App) handleVoice(chatID, fileID string, msg map[string]any) {
+	v := &voiceMsg{chatID, fileID, msg}
+	if !a.voiceStatus().Ready {
+		a.mu.Lock()
+		a.pendingVoice = v
+		a.mu.Unlock()
+		kb := map[string]any{"inline_keyboard": [][]map[string]string{{{"text": "🎙 " + a.T("voice_install_btn"), "callback_data": "v:install"}}}}
+		_, _ = a.tgSendTo(chatID, "🎙 "+a.T("voice_needed"), false, kb)
+		return
+	}
+	go a.processVoice(v)
+}
+
+func (a *App) processVoice(v *voiceMsg) {
+	_, _ = a.tgCall("sendChatAction", map[string]any{"chat_id": v.chatID, "action": "typing"})
+	path, err := a.saveTgFile(v.fileID, "voice-"+time.Now().Format("150405")+".oga", filepath.Join(voiceDir(), "tmp"))
+	if err == nil {
+		defer os.Remove(path)
+		var text string
+		if text, err = transcribe(path); err == nil {
+			_, _ = a.tgSendTo(v.chatID, "🎙 “"+text+"”", true, nil)
+			m := map[string]any{"chat": map[string]any{"id": v.chatID}, "text": text}
+			if rt, ok := v.msg["reply_to_message"]; ok {
+				m["reply_to_message"] = rt
+			}
+			a.handleMessage(map[string]any{"message": m})
+			return
+		}
+	}
+	_, _ = a.tgSendTo(v.chatID, "❌ "+a.T("voice_failed", err.Error()), false, nil)
 }
 
 func (a *App) tgStartMission(chatID, mission string) {

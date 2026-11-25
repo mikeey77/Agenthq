@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.7.0
+
+- **Memory per project.** Agents save decisions, your preferences and lessons with `remember`; every new agent in that project reads them first. There is also a general memory for every project. Manage it in the new Library page or via Memory on a project.
+- **Review agent.** After a mission changes files, a reviewer checks the work, runs the tests, fixes small problems and ends with ✅ Approved or ⚠️ Needs work. Project tasks only move to Check after the review. Off / projects only / all missions in Settings.
+- **Skills library.** Agents save proven step-by-step ways of working (`save_skill`) and load them when a task matches (`use_skill`). Write your own in Library.
+- **Voice messages on Telegram.** Talk to your agents: voice notes are turned into text on your own PC with whisper.cpp (free, private). One-time download of about 235 MB, started from Telegram or Settings.
+- **Usage per project.** New Usage page with tokens per day per project (7/14/30 days), totals and value per project.
+- **Put online.** Deploy a project to Netlify or GitHub Pages with one click, with /deploy on Telegram, or by an agent. Builds first when there is a build script; .env files are never uploaded.
+
 ## 2.6.0
 
 - **Telegram is a full terminal.** Type what you want and an agent starts; keep typing to talk to it. Reply to any agent message to talk to that agent. Send photos and files. /agents shows buttons to talk, pause, stop and read the log; Telegram's own "/" menu lists every command.

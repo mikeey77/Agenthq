@@ -30,6 +30,8 @@ type Config struct {
 	TokenBudget    int64           `json:"tokenBudget"` // 0 = auto (busiest previous block)
 	Theme          string          `json:"theme"`       // light | dark
 	AutoUpdate     bool            `json:"autoUpdate"`
+	ReviewMode     string          `json:"reviewMode"` // off | projects | all
+	NetlifyToken   string          `json:"netlifyToken"`
 	Accent         string          `json:"accent"`
 	Layout         json.RawMessage `json:"layout,omitempty"`
 	UpdateRepo     string          `json:"updateRepo"`
@@ -52,7 +54,7 @@ func defaultConfig() Config {
 	return Config{
 		Lang: "en", TgUpdates: true, TgSilent: true, TgDecisions: true, TgCritical: true,
 		Workspace: filepath.Join(h, "AgentHQ"), PermissionMode: "full", PermVersion: 2,
-		Theme: "dark", Accent: "orange", AutoUpdate: true, UpdateRepo: defaultUpdateRepo, MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
+		ReviewMode: "all", Theme: "dark", Accent: "orange", AutoUpdate: true, UpdateRepo: defaultUpdateRepo, MaxAgents: 10, MaxRunning: 3, MaxDepth: 3, MaxTurns: 25, Port: 7777,
 	}
 }
 
@@ -85,6 +87,9 @@ func loadConfig() Config {
 	}
 	if c.Lang == "" {
 		c.Lang = "en"
+	}
+	if c.ReviewMode == "" {
+		c.ReviewMode = "all"
 	}
 	if c.UpdateRepo == "" || c.UpdateRepo == "mikeey77/agent-hq" { // the repo is called Agenthq
 		c.UpdateRepo = defaultUpdateRepo

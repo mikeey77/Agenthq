@@ -28,7 +28,7 @@ var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.6.0" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.7.0" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`
@@ -37,34 +37,39 @@ type TermLine struct {
 }
 
 type App struct {
-	schedules   []*Schedule
-	tgFocus     string // agent the Telegram chat is talking to
-	tgQuiet     bool
-	tgAgentMsgs map[int64]string // Telegram message → agent, for replies
-	projects    []*Project
-	nextProject string
-	nextTask    string
-	limitUntil  time.Time
-	warnedBlock time.Time
-	browser     *Browser
-	window      bool
-	mu          sync.Mutex
-	cfg         Config
-	agents      map[string]*Agent
-	order       []string
-	decisions   []*Decision
-	events      []Event
-	evSeq       int64
-	dirty       bool
-	secret      string
-	tg          TelegramState
-	tgMsgs      map[int64]string
-	usage       *UsageTracker
-	external    External
-	claudeDir   string
-	demo        bool
-	term        []TermLine
-	upd         UpdateInfo
+	voice        VoiceState
+	pendingVoice *voiceMsg
+	memory       []*Note
+	skills       []*Skill
+	ledger       map[string]map[string]*Spend
+	schedules    []*Schedule
+	tgFocus      string // agent the Telegram chat is talking to
+	tgQuiet      bool
+	tgAgentMsgs  map[int64]string // Telegram message → agent, for replies
+	projects     []*Project
+	nextProject  string
+	nextTask     string
+	limitUntil   time.Time
+	warnedBlock  time.Time
+	browser      *Browser
+	window       bool
+	mu           sync.Mutex
+	cfg          Config
+	agents       map[string]*Agent
+	order        []string
+	decisions    []*Decision
+	events       []Event
+	evSeq        int64
+	dirty        bool
+	secret       string
+	tg           TelegramState
+	tgMsgs       map[int64]string
+	usage        *UsageTracker
+	external     External
+	claudeDir    string
+	demo         bool
+	term         []TermLine
+	upd          UpdateInfo
 }
 
 func (a *App) termAdd(kind string, lines ...string) {
@@ -225,7 +230,7 @@ func (a *App) stateJSON() map[string]any {
 		"version": version, "lang": a.cfg.Lang, "theme": a.cfg.Theme, "accent": a.cfg.Accent, "layout": a.cfg.Layout, "setupDone": a.cfg.SetupDone, "demo": a.demo,
 		"claudePath": claude, "claudeFound": claude != "",
 		"agents": views, "decisions": a.pendingDecisions(), "recentDecisions": recent,
-		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a), "projects": a.projectViews(), "schedules": a.scheduleViews(), "tgFocus": a.tgFocus,
+		"events": ev, "external": a.external, "telegram": tg, "usage": a.usage.Summary(a.cfg.TokenBudget), "limitUntil": limitOut(a), "projects": a.projectViews(), "schedules": a.scheduleViews(), "memory": a.memory, "skills": a.skillViews(), "voice": a.voiceStatus(), "ledger": a.ledgerView(), "tgFocus": a.tgFocus,
 		"stats": stats, "connectors": conns, "update": func() UpdateInfo { u := a.upd; u.Current = version; return u }(), "autoUpdate": a.cfg.AutoUpdate, "autostart": autostartEnabled(), "canAutostart": runtime.GOOS == "windows",
 		"permissionMode": a.cfg.PermissionMode, "workspace": a.cfg.Workspace, "term": append([]TermLine{}, a.term...),
 		"limits": map[string]int{"maxAgents": a.cfg.MaxAgents, "maxRunning": a.cfg.MaxRunning},
@@ -246,6 +251,9 @@ func (a *App) routes() http.Handler {
 	a.browserRoutes(mux)
 	a.projectRoutes(mux)
 	a.scheduleRoutes(mux)
+	a.libraryRoutes(mux)
+	a.deployRoutes(mux)
+	a.voiceRoutes(mux)
 	a.connectorRoutes(mux)
 	a.updateRoutes(mux)
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.stateJSON()) })
@@ -360,8 +368,10 @@ func (a *App) routes() http.Handler {
 				http.Error(w, err.Error(), 400)
 				return
 			}
-			if t, ok := in["githubToken"].(string); ok && strings.Contains(t, "•") {
-				delete(in, "githubToken")
+			for _, k := range []string{"githubToken", "netlifyToken"} {
+				if t, ok := in[k].(string); ok && strings.Contains(t, "•") {
+					delete(in, k)
+				}
 			}
 			if t, ok := in["botToken"].(string); ok && strings.Contains(t, "•") {
 				delete(in, "botToken")
@@ -393,6 +403,9 @@ func (a *App) routes() http.Handler {
 		}
 		c := a.cfg
 		c.Connectors = nil // served (masked) by /api/connectors
+		if len(c.NetlifyToken) > 10 {
+			c.NetlifyToken = c.NetlifyToken[:4] + "••••••" + c.NetlifyToken[len(c.NetlifyToken)-3:]
+		}
 		if len(c.GitHubToken) > 10 {
 			c.GitHubToken = c.GitHubToken[:4] + "••••••" + c.GitHubToken[len(c.GitHubToken)-3:]
 		}

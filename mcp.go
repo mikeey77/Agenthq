@@ -88,7 +88,7 @@ func (a *App) handleMCP(w http.ResponseWriter, r *http.Request) {
 	case "tools/list":
 		tools := append(append([]map[string]any{}, mcpTools...), browserTools...)
 		tools = append(append(tools, projectTools...), githubTools...)
-		tools = append(tools, scheduleTool)
+		tools = append(append(tools, scheduleTool, deployTool), libraryTools...)
 		reply(map[string]any{"tools": tools}, nil)
 	case "tools/call":
 		var p struct {
@@ -96,6 +96,26 @@ func (a *App) handleMCP(w http.ResponseWriter, r *http.Request) {
 			Arguments map[string]any `json:"arguments"`
 		}
 		_ = json.Unmarshal(req.Params, &p)
+		if p.Name == "deploy" {
+			a.mu.Lock()
+			ag := a.agents[id]
+			var proj *Project
+			if ag != nil {
+				proj = a.projectByID(ag.ProjectID)
+				ag.ToolKind, ag.ToolTarget = "app", "deploy"
+			}
+			a.mu.Unlock()
+			text, isErr := "", true
+			if proj == nil {
+				text = "Deploy works for projects. Call create_project first (it uses your folder), then deploy."
+			} else if u, err := a.runDeploy(proj, str(p.Arguments, "target"), func(s string) { a.mu.Lock(); a.addLog(ag, "tool", "deploy: "+s); a.mu.Unlock() }); err != nil {
+				text = "Deploy failed: " + err.Error()
+			} else {
+				text, isErr = "Live at "+u, false
+			}
+			reply(map[string]any{"content": []map[string]any{{"type": "text", "text": text}}, "isError": isErr}, nil)
+			return
+		}
 		if strings.HasPrefix(p.Name, "github_") {
 			a.mu.Lock()
 			ag := a.agents[id]
@@ -133,6 +153,10 @@ func (a *App) callTool(r *http.Request, agentID, name string, args map[string]an
 		return "unknown agent", true
 	}
 	switch name {
+	case "remember", "forget", "save_skill", "use_skill":
+		text, isErr := a.libraryTool(ag, name, args)
+		a.mu.Unlock()
+		return text, isErr
 	case "schedule_mission":
 		text, isErr := a.scheduleFromTool(ag, args)
 		a.mu.Unlock()

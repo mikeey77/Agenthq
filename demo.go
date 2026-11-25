@@ -93,6 +93,31 @@ func (a *App) seedDemo() {
 			T("Telegram plugin", "review", "b1", "you", 60), T("Release build 1.3", "todo", "", "nova", 59), T("Upwork plugin", "todo", "", "you", 4000),
 			T("WhatsApp bridge", "done", "", "you", 9000), T("Calendar sync", "done", "", "you", 9500)}}
 	a.projects = []*Project{gb, as}
+	N := func(text, kind, by string, mins float64) *Note {
+		return &Note{ID: newID()[:6], Text: text, Kind: kind, By: by, Created: ago(mins)}
+	}
+	gb.Memory = []*Note{N("We use Vitest for tests, not Jest.", "decision", "atlas", 3000), N("UI texts in Dutch, code and comments in English.", "preference", "you", 5000),
+		N("Tesseract misreads crumpled receipts; always run the deskew step first.", "lesson", "lens", 40), N("Amounts are stored in cents (integers), never floats.", "decision", "forge", 26)}
+	gb.SiteURL, gb.NetlifySite = "https://glovebox-demo.netlify.app", "demo"
+	gb.Deploys = []Deploy{{Target: "netlify", URL: gb.SiteURL, At: ago(60 * 20), OK: true}}
+	as.Memory = []*Note{N("Telegram bot token lives in .env, never commit it.", "fact", "nova", 900)}
+	a.memory = []*Note{N("Michael prefers short answers in Dutch.", "preference", "you", 9000), N("Main PC is a Windows laptop without a strong GPU.", "fact", "you", 9000)}
+	a.skills = []*Skill{
+		{ID: "k1", Name: "Deploy a Vite site to Netlify", Desc: "When a Vite or React app has to go online.", Steps: "1. Run `npm run build`.\n2. Check that dist/index.html exists.\n3. Call deploy(target: netlify).\n4. Open the URL and check the console for errors.", By: "nova", Uses: 6, Created: ago(60 * 24 * 9)},
+		{ID: "k2", Name: "Set up Vitest in a TypeScript project", Desc: "Adding tests to a project that has none.", Steps: "1. `npm i -D vitest`\n2. Add \"test\": \"vitest run\" to package.json.\n3. Put tests next to the code as *.test.ts.", By: "probe", Uses: 3, Created: ago(60 * 24 * 4)},
+		{ID: "k3", Name: "Read receipts with OCR", Desc: "Turning a photo of a receipt into amount, date and shop.", Steps: "1. Deskew and threshold the image.\n2. Tesseract with nld+eng.\n3. Find the total with the regex in src/ocr.ts.", By: "lens", Uses: 2, Created: ago(60 * 30)},
+		{ID: "k4", Name: "Clean up the mailbox", Desc: "Summarize unread mail and archive newsletters.", Steps: "1. List unread mail of the last 24 h.\n2. Group by: needs answer, info, newsletter.\n3. Ask before archiving.", By: "you", Uses: 12, Created: ago(60 * 24 * 20)},
+	}
+	a.ledger = map[string]map[string]*Spend{}
+	for i := 0; i < 30; i++ {
+		d := time.Now().AddDate(0, 0, -i).Format("2006-01-02")
+		f := float64((i*37)%11+3) / 10
+		a.ledger[d] = map[string]*Spend{
+			"p1": {Cost: 1.9 * f, Tokens: int64(1900000 * f), Turns: int(12 * f)},
+			"p2": {Cost: 0.6 * f * float64(i%3), Tokens: int64(600000 * f * float64(i%3)), Turns: int(4 * f)},
+			"":   {Cost: 0.4 * f, Tokens: int64(380000 * f), Turns: int(5 * f)},
+		}
+	}
 	a.schedules = []*Schedule{
 		{ID: "s1", Name: "Morning mail summary", Mission: "Summarize my unread mail from the last 24 hours and tell me what needs an answer.", Kind: "daily", Time: "07:30", Enabled: true, Runs: 12, LastRun: ago(60 * 15), By: "you"},
 		{ID: "s2", Name: "Glovebox nightly tests", Mission: "Run all Glovebox tests, fix small failures and report what broke.", Project: "p1", Kind: "weekly", Days: []int{1, 2, 3, 4, 5}, Time: "02:00", Enabled: true, Runs: 4, LastRun: ago(60 * 21), By: "atlas"},

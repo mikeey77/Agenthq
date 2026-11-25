@@ -39,6 +39,7 @@ type Agent struct {
 	ToolKind           string     `json:"toolKind"`   // browser web search file edit terminal app agent
 	ToolTarget         string     `json:"toolTarget"` // url host, file name, command, connector
 	ProjectID          string     `json:"projectId,omitempty"`
+	ReviewOf           string     `json:"reviewOf,omitempty"` // lead whose work this agent reviews
 	TaskID             string     `json:"taskId,omitempty"`
 	Files              []string   `json:"files,omitempty"`       // files it created or changed, newest first
 	LimitPaused        bool       `json:"limitPaused,omitempty"` // parked until the usage limit resets
@@ -462,7 +463,7 @@ func (a *App) systemPrompt(ag *Agent) string {
 	if p := a.projectByID(ag.ProjectID); p != nil {
 		projText = "\n" + p.taskBoard() + "\nKeep this board current with add_task and update_task: move tasks you work on to doing, finished ones to review."
 	}
-	return connText + projText + "\n\n" + fmt.Sprintf(`You are %q, an autonomous agent inside Agent HQ: a control room where a human (the user) supervises a team of AI agents.
+	return connText + projText + a.memoryText(ag) + "\n\n" + fmt.Sprintf(`You are %q, an autonomous agent inside Agent HQ: a control room where a human (the user) supervises a team of AI agents.
 Your role: %s. %s
 Working directory: %s
 
@@ -479,7 +480,7 @@ Whenever a task needs a real web page (shops, logins, forms, pages WebFetch cann
 
 Scheduling: schedule_mission(name, mission, kind, time, days, every_minutes, date) runs a mission later or repeatedly. Use it when the user asks for something recurring or at a later time.
 GitHub (mcp__hq__github_*): github_create_repo(name, description, private, push) creates a repo on the user's account and pushes your folder; github_push(message) pushes new work. Repos are private unless the user asked for public. Prefer these over the gh CLI.
-Projects (mcp__hq__*): create_project, project_tasks, add_task, update_task.
+Projects (mcp__hq__*): create_project, project_tasks, add_task, update_task. deploy(target) puts the project online (Netlify or GitHub Pages) and returns the URL.
 
 Images on Telegram: report(level, message, screenshot=true) attaches the current Agent HQ browser page, use it when a page is worth seeing.
 
@@ -699,19 +700,25 @@ func (a *App) handleStream(ag *Agent, m map[string]any) {
 		ag.gotResult = true
 		ag.resultErr = str(m, "is_error") == "true"
 		ag.lastResult = str(m, "result")
+		var turnCost float64
+		var turnTok int64
 		if c, ok := m["total_cost_usd"].(float64); ok {
 			ag.Cost += c
+			turnCost = c
 		}
 		if u, ok := m["usage"].(map[string]any); ok {
 			for _, k := range []string{"input_tokens", "cache_creation_input_tokens"} {
 				if v, ok := u[k].(float64); ok {
 					ag.InTok += int64(v)
+					turnTok += int64(v)
 				}
 			}
 			if v, ok := u["output_tokens"].(float64); ok {
 				ag.OutTok += int64(v)
+				turnTok += int64(v)
 			}
 		}
+		a.spend(ag, turnCost, turnTok)
 		if ag.resultErr {
 			a.addLog(ag, "error", truncate(ag.lastResult+" "+str(m, "subtype"), 400))
 		} else if ag.lastResult != "" {
@@ -776,7 +783,9 @@ func (a *App) finishTurn(ag *Agent, cmd *exec.Cmd, waitErr error, stderr string)
 			a.deliver(parent, fmt.Sprintf(dict["en"]["agent_finished_parent"], ag.Name, ag.Summary), false)
 			a.emit("info", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 300)))
 		} else {
-			a.taskFinished(ag, true)
+			if !a.startReview(ag) {
+				a.taskFinished(ag, true)
+			}
 			a.emit("done", ag.ID, a.T("done", ag.Name, truncate(ag.Summary, 900)))
 			a.termAdd("ag", ag.Name+": "+truncate(ag.Summary, 1200))
 		}
@@ -985,19 +994,22 @@ func (a *App) expireDecisions(agentID string, onlyPermissions bool) {
 // ---------- persistence ----------
 
 type savedState struct {
-	Schedules []*Schedule `json:"schedules"`
-	Projects  []*Project  `json:"projects"`
-	Agents    []*Agent    `json:"agents"`
-	Decisions []*Decision `json:"decisions"`
-	Events    []Event     `json:"events"`
-	EvSeq     int64       `json:"evSeq"`
+	Memory    []*Note                      `json:"memory"`
+	Skills    []*Skill                     `json:"skills"`
+	Ledger    map[string]map[string]*Spend `json:"ledger"`
+	Schedules []*Schedule                  `json:"schedules"`
+	Projects  []*Project                   `json:"projects"`
+	Agents    []*Agent                     `json:"agents"`
+	Decisions []*Decision                  `json:"decisions"`
+	Events    []Event                      `json:"events"`
+	EvSeq     int64                        `json:"evSeq"`
 }
 
 func (a *App) saveState() {
 	if a.demo {
 		return
 	}
-	st := savedState{Events: a.events, EvSeq: a.evSeq, Projects: a.projects, Schedules: a.schedules}
+	st := savedState{Events: a.events, EvSeq: a.evSeq, Projects: a.projects, Schedules: a.schedules, Memory: a.memory, Skills: a.skills, Ledger: a.ledger}
 	for _, id := range a.order {
 		st.Agents = append(st.Agents, a.agents[id])
 	}
@@ -1023,6 +1035,7 @@ func (a *App) loadState() {
 	}
 	a.projects = st.Projects
 	a.schedules = st.Schedules
+	a.memory, a.skills, a.ledger = st.Memory, st.Skills, st.Ledger
 	for _, s := range a.schedules {
 		if s.Enabled {
 			s.NextRun = s.next(time.Now())

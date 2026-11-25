@@ -27,14 +27,19 @@ type PTask struct {
 }
 
 type Project struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Desc    string    `json:"desc"`
-	Folder  string    `json:"folder"`
-	Repo    string    `json:"repo,omitempty"`
-	Color   string    `json:"color"`
-	Created time.Time `json:"created"`
-	Tasks   []*PTask  `json:"tasks"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Desc        string    `json:"desc"`
+	Folder      string    `json:"folder"`
+	Repo        string    `json:"repo,omitempty"`
+	Color       string    `json:"color"`
+	Created     time.Time `json:"created"`
+	Tasks       []*PTask  `json:"tasks"`
+	Memory      []*Note   `json:"memory"`
+	NetlifySite string    `json:"netlifySite,omitempty"`
+	SiteURL     string    `json:"siteUrl,omitempty"`
+	Deploys     []Deploy  `json:"deploys,omitempty"`
+	Deploying   bool      `json:"deploying,omitempty"`
 }
 
 var projectColors = []string{"#ff8a4c", "#6aa7ff", "#3ecf8e", "#c792ea", "#f5c451", "#5fd7d7", "#ff8fa3", "#a3d977"}
