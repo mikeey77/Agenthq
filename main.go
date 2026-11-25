@@ -28,7 +28,7 @@ var fontFS embed.FS
 
 const appName = "AgentHQ"
 
-var version = "2.7.2" // overridden at release build time with -ldflags "-X main.version=..."
+var version = "2.7.3" // overridden at release build time with -ldflags "-X main.version=..."
 
 type TermLine struct {
 	T    time.Time `json:"t"`

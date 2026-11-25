@@ -1,8 +1,6 @@
 package main
 
-// Test center: quick health checks of everything Agent HQ depends on, and a full test
-// mission that exercises agents, teamwork, questions, the browser, memory, skills,
-// projects and the review agent in one go.
+// System check: quick health checks of everything Agent HQ depends on.
 
 import (
 	"encoding/json"
@@ -177,46 +175,8 @@ func firstLine(s string) string {
 // claudeBin is the Claude Code executable that agents use. Caller holds a.mu.
 func (a *App) claudeBin() string { return detectClaude(a.cfg.ClaudePath) }
 
-// The full test: one mission that touches every part of Agent HQ.
-const testMission = `This is the Agent HQ full self-test. Do these steps in order and keep a checklist of what worked.
-
-1. create_project with name "HQ self-test" and description "Automatic test of Agent HQ".
-2. add_task "Test task from the self-test" and move it to doing with update_task.
-3. report (level update): "Self-test started".
-4. spawn_agent a helper named "tester" with role "Tester" and this mission: "Write a file test-result.md in your folder containing the line 'tester was here' and today's date, then send a message to your parent with message_agent saying 'file written', then complete."
-5. While the tester works: browser_open https://example.com, browser_read it, and report (level update, screenshot true) the page title.
-6. ask_decision: question "Self-test: pick an option to test answering", options ["Option 1", "Option 2"]. Tell the user in the detail that they can answer here or on Telegram with 1️⃣ or 2️⃣. Wait for the answer.
-7. remember (kind fact): "The self-test ran on this PC" and save_skill name "Run the Agent HQ self-test", description "How to check that Agent HQ works", steps: a short list of these steps.
-8. Wait for the tester's message, then check that test-result.md exists.
-9. update_task the test task to review.
-10. complete with a summary that starts with "Self-test:" and lists every step with ✅ or ❌ and one short reason for each ❌.`
-
-func (a *App) startSelfTest() (*Agent, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	for _, p := range a.projects { // reuse the folder of an earlier self-test
-		if p.Name == "HQ self-test" {
-			a.nextProject = p.ID
-		}
-	}
-	ag, err := a.startMission(testMission, "selftest", "", "", nil)
-	a.nextProject = ""
-	return ag, err
-}
-
 func (a *App) selftestRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/selftest", func(w http.ResponseWriter, r *http.Request) {
-		var in struct{ Action string }
-		_ = readBody(r, &in)
-		if in.Action == "mission" {
-			ag, err := a.startSelfTest()
-			if err != nil {
-				http.Error(w, err.Error(), 400)
-				return
-			}
-			writeJSON(w, map[string]string{"id": ag.ID, "name": ag.Name})
-			return
-		}
 		if a.demo {
 			writeJSON(w, map[string]any{"checks": demoChecks()})
 			return

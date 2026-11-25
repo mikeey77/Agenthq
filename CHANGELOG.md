@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.7.3
+
+- Removed the self-test mission; Settings keeps a quick system check.
+
 ## 2.7.2
 
 - **Dashboard without holes.** Widgets now stack like a masonry wall: each one takes exactly the height it needs and smaller widgets fill the gaps.

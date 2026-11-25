@@ -31,7 +31,6 @@ var tgCommands = []struct{ cmd, en, nl string }{
 	{"resume", "Continue a paused agent", "Gepauzeerde agent verder laten gaan"},
 	{"stop", "Stop an agent or all", "Agent of alles stoppen"},
 	{"usage", "Token usage and reset time", "Tokengebruik en resettijd"},
-	{"test", "Run the full self-test", "Volledige zelftest draaien"},
 	{"help", "Everything you can do here", "Alles wat je hier kunt"},
 }
 
@@ -352,16 +351,6 @@ func (a *App) handleMessage(um map[string]any) {
 				return // runDeploy already reports success and failure
 			}
 		}()
-	case "/test":
-		ag, err := a.startSelfTest()
-		if err != nil {
-			reply("❌ " + err.Error())
-			return
-		}
-		a.mu.Lock()
-		a.tgFocus = ag.ID
-		a.mu.Unlock()
-		reply("🧪 " + a.T("tg_selftest", ag.Name))
 	case "/talk":
 		a.mu.Lock()
 		ag := a.agentByRef(rest)
